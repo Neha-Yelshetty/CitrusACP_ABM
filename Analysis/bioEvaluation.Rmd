@@ -3,7 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-
+Load libraries
 ```{r}
 library(tidyverse)
 library(readr)
@@ -12,15 +12,16 @@ library(scales)
 library(data.table)
 ```
 
+Load data files
 ```{r}
-bio_df = fread("C:/dev/EconABM/output.csv")
-econ_df = read.csv("C:/dev/EconABM/econ_output.csv")
-#behavior_df = read.csv("C:/dev/EconABM/behavior_output.csv")
-#time_df = read.csv("C:/dev/EconABM/time.csv")
+#Change to bio output file
+bio_df = fread("bio_output.csv")
+#Change to econ output file
+econ_df = read.csv("econ_output.csv")
 ```
 
 
-
+Adjust data format for easy graphing
 ```{r}
 bio_df = 
   bio_df %>%
@@ -30,6 +31,7 @@ bio_df =
          symptomatic = as.logical(symptomatic))
 ```
 
+Track mean severity over time
 ```{r}
 bio_df %>%
   group_by(t) %>%
@@ -39,7 +41,7 @@ bio_df %>%
 
 ```
 
-
+Track ACP population counts over time
 ```{r}
 acp =
   bio_df %>%
@@ -56,7 +58,8 @@ acp
 
 
 
-
+<WARNING: Computationally intensive>
+Generates a gift that shows how HLB spreads throughout the grid over time, as well as outlines that indicate if a tree is alive
 ```{r}
   bio_df %>%
   ggplot(aes(x=j,y=i,fill=hlbSeverity)) +
@@ -75,6 +78,7 @@ acp
 ```
 
 
+Yearly returns, non-cumulative
 ```{r}
 econ_df %>%
   filter(t %% 365==0) %>%
