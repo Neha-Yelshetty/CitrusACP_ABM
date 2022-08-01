@@ -1,0 +1,317 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(dbplyr)
+library(tidyverse)
+library(stringr)
+```
+
+
+```{r}
+con = DBI::dbConnect(RPostgres::Postgres(),
+                     user="postgres",
+                     dbname="netbenefits",
+                     password="CitrusABM21",
+                     host="12.42.204.89")
+econ = tbl(con, "econ")
+experiments = tbl(con, "experiments")
+```
+
+```{r}
+df = 
+  econ %>%
+  filter(t %% 365 == 0) %>%
+  left_join(
+    experiments %>% 
+      select(experiment_id, invasionDays)
+    ,
+    by=c("experiment_id")) %>%
+  group_by(t,strategy_names,strategy_params, invasionDays) %>%
+  summarize(hlb=mean(hlb_severity), returns=mean(returns), costs=mean(costs)) %>%
+  collect()
+og_df = df
+```
+```{r}
+df %>%
+  filter(strategy_names == "SprayTrees") %>%
+  separate(strategy_params, sep=";", into=c("efficacy","cost")) %>%
+  mutate(efficacy = as.numeric(efficacy),
+             numInvasions = str_count(invasionDays,",") + 1
+  ) %>%
+  group_by(efficacy,t,numInvasions) %>%
+  summarize(returns=mean(returns),hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb, color=as.factor(efficacy), shape=as.factor(numInvasions))) +
+  geom_point() +
+  geom_line()
+
+df %>%
+  filter(strategy_names == "SprayTrees") %>%
+  separate(strategy_params, sep=";", into=c("efficacy","cost")) %>%
+  mutate(efficacy = as.numeric(efficacy),
+             numInvasions = str_count(invasionDays,",") + 1
+  ) %>%
+  group_by(efficacy,t) %>%
+  summarize(returns=mean(returns),hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb, color=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+
+df %>%
+  filter(strategy_names == "SprayTrees") %>%
+  separate(strategy_params, sep=";", into=c("efficacy","cost")) %>%
+  mutate(efficacy = as.numeric(efficacy),
+             numInvasions = str_count(invasionDays,",") + 1
+  ) %>%
+  group_by(efficacy,t) %>%
+  summarize(returns=mean(returns),hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=returns, color=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+  
+```
+
+
+
+TREE REMOVAL
+
+```{r}
+roguedf = 
+df %>%
+  filter(strategy_names == "RogueTrees", t %% 365 == 0) %>%
+  separate(strategy_params, sep=";", into=c("frequency","radius","removalCost","surveyCost")) %>%
+  mutate(
+    frequency=as.numeric(frequency),
+    radius=as.numeric(radius),
+    removalCost=as.numeric(removalCost),
+    surveyCost=as.numeric(surveyCost),
+    numInvasions = str_count(invasionDays,",") + 1
+  )
+
+roguedf %>%
+  group_by(numInvasions, frequency, t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb,color=as.factor(numInvasions), shape=as.factor(frequency))) +
+  geom_point() +
+  geom_line()
+
+roguedf %>%
+  group_by(frequency, radius, t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb,color=as.factor(frequency), shape=as.factor(radius))) +
+  geom_point() +
+  geom_line()
+
+roguedf %>%
+  filter(radius %in% c(0,2,4,8)) %>%
+  group_by(frequency, radius, t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=returns,color=as.factor(frequency), shape=as.factor(radius))) +
+  geom_point() +
+  geom_line()
+
+roguedf %>%
+  group_by(radius, t, numInvasions) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=returns,color=as.factor(radius), shape=as.factor(numInvasions))) +
+  geom_point() +
+  geom_line()
+```
+
+
+
+```{r}
+roguespraydf = 
+  df %>%
+    filter(strategy_names=="RogueTrees-SprayTrees") %>%
+    separate(strategy_params,sep="-",into=c("RogueParams","SprayParams")) %>%
+    separate(RogueParams,sep=";",into=c("frequency","radius","removalCost","surveyCost")) %>%
+    separate(SprayParams,sep=";",into=c("efficacy","sprayCost")) %>%
+    mutate(
+      frequency=as.numeric(frequency),
+      efficacy=as.numeric(efficacy),
+      radius=as.numeric(radius),
+      numInvasions = str_count(invasionDays,",") + 1
+    )
+
+roguespraydf %>%
+  filter(efficacy < 0.9) %>%
+  group_by(frequency,efficacy,t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=returns,color=as.factor(frequency),shape=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+
+
+roguespraydf %>%
+  filter(efficacy < 0.9) %>%
+  group_by(frequency,efficacy,t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb,color=as.factor(frequency),shape=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+
+
+roguespraydf %>%
+  filter(efficacy < 0.9) %>%
+  group_by(radius,efficacy,t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=hlb,color=as.factor(radius),shape=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+
+
+roguespraydf %>%
+  filter(efficacy < 0.9) %>%
+  group_by(radius,efficacy,t) %>%
+  summarize(returns=mean(returns), hlb=mean(hlb)) %>%
+  ggplot(aes(x=t,y=returns,color=as.factor(radius),shape=as.factor(efficacy))) +
+  geom_point() +
+  geom_line()
+
+summary(lm(returns ~ efficacy + frequency + numInvasions,data=roguespraydf))
+```
+
+```{r}
+df %>%
+  group_by(t,strategy_names) %>%
+  summarize(hlb=mean(hlb)) %>%
+  mutate(strategy_names=as.factor(strategy_names), hlb=replace_na(hlb,0)) %>%
+  ggplot(aes(x=t,y=hlb,color=strategy_names)) +
+  geom_point() +
+  geom_line()
+
+df %>%
+  filter(strategy_names != "NoAction") %>%
+  group_by(t,strategy_names) %>%
+  summarize(returns=mean(returns)) %>%
+  left_join(
+    df %>%
+      filter(strategy_names=="NoAction") %>%
+      group_by(t) %>%
+      summarize(NoAction=mean(returns)),
+    by=c("t")
+  ) %>%
+  mutate(strategy_names=as.factor(strategy_names),
+         netbenefits=returns-NoAction) %>%
+  ggplot(aes(x=t,y=netbenefits,color=strategy_names)) +
+  geom_point() +
+  geom_line()
+
+```
+
+
+```{r}
+## Note that the since the high density plantings have no impact on the epi model, there is no need to simulate them. You can just modify expected yields and costs as needed
+yieldPrice = 17.60
+annualFixed = 2
+numYears = 5
+endingYear = 365*numYears
+meanSurveys = 12
+
+noaction = 
+  df %>%
+    filter(t==endingYear) %>%
+    group_by(strategy_names) %>%
+    summarize(returns=mean(returns), costs=mean(costs)) %>%
+    filter(strategy_names=="NoAction") %>%
+    mutate(expectedYield = returns / yieldPrice)
+
+
+## SPRAYING EXPECTED YIELD
+onlySprays = 
+  df %>%
+    filter(t==endingYear) %>%
+    group_by(strategy_names) %>%
+    summarize(returns=mean(returns), costs=mean(costs)) %>%
+    mutate(highDensity = grepl("Dense",strategy_names)) %>%
+    filter(grepl("SprayTrees", strategy_names), !grepl("RogueTrees",strategy_names), !highDensity) %>%
+    mutate(expectedYield = returns / yieldPrice)
+
+## ROGUEING EXPECTED YIELD AND REMOVAL
+onlyRogues = 
+  df %>%
+    filter(t==endingYear) %>%
+    group_by(strategy_names) %>%
+    summarize(returns=mean(returns), costs=mean(costs)) %>%
+    mutate(highDensity = grepl("Dense",strategy_names)) %>%
+    filter(!highDensity) %>%
+    filter(!grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>%
+    mutate(expectedYield = returns / yieldPrice,
+           expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears)/5) 
+## SPRAYING AND ROGUEING EXPECTED YIELD AND REMOVAL
+roguenspray = 
+  df %>%
+    filter(t==endingYear) %>%
+    group_by(strategy_names) %>%
+    summarize(returns=mean(returns), costs=mean(costs)) %>%
+    mutate(highDensity = grepl("Dense",strategy_names)) %>%
+    filter(!highDensity) %>%
+    filter(grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>%
+    mutate(expectedYield = returns / yieldPrice,
+           expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears-6*numYears*5)/5) 
+
+
+expectedYield_na = noaction$expectedYield
+expectedYield_rogue = onlyRogues$expectedYield
+expectedYield_spray = onlySprays$expectedYield
+expectedYield_roguenspray = roguenspray$expectedYield
+expectedRemovals_rogue = 200
+expectedRemovals_roguenspray = roguenspray$expectedRemovalCount
+```
+
+```{r}
+yield_multiplier=1.5
+numAcres = 1.26
+t = numYears
+c = 9293*numAcres
+p = 17.60
+noHLB_annualyield = 28046.637*yield_multiplier
+c_spray = 107.73*numAcres
+c_removal = 20
+c_labor = 20
+survey_hours = 1.678*numAcres
+n_surveys = 1
+c_s1 = 6*c_spray*t
+c_s2 = c_removal * expectedRemovals_rogue + c_labor*survey_hours*n_surveys*t
+c_s3 = c_s1 + c_removal*expectedRemovals_roguenspray + c_labor*survey_hours*n_surveys*t
+
+
+statics_df = 
+  data.frame(
+    strategy=c("No Action", "Spraying", "Rogueing", "Spraying and Rogueing"),
+    returns=c(expectedYield_na*p*yield_multiplier, expectedYield_spray*p*yield_multiplier, expectedYield_rogue*p*yield_multiplier, expectedYield_roguenspray*p*yield_multiplier),
+    costs = c(c*t, c*t+c_s1, c*t+c_s2, c*t+c_s3)
+    )
+
+statics_df = statics_df %>% mutate(profit = returns - costs)
+
+```
+
+BASE GRAPH
+
+```{r}
+statics_df %>%
+  mutate(noHLB_profit = noHLB_annualyield*t*p - costs) %>%
+  select(strategy,profit,noHLB_profit) %>% 
+  pivot_longer(!strategy, names_to="HLB", values_to="profit") %>%
+  mutate(hlbRisk = as.numeric(!grepl("HLB",HLB)),
+        annualAcreProfit = profit/numAcres/t        
+        ) %>%
+  ggplot(aes(x=hlbRisk,y=annualAcreProfit,shape=strategy)) +
+  geom_line() +
+  geom_point()
+
+```
+
+
+
+
+
+
+
+
+
+

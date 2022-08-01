@@ -1,0 +1,113 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(readr)
+library(gganimate)
+library(scales)
+library(data.table)
+```
+
+```{r}
+bio_df = fread("C:/dev/EconABM/output.csv")
+econ_df = read.csv("C:/dev/EconABM/econ_output.csv")
+#behavior_df = read.csv("C:/dev/EconABM/behavior_output.csv")
+#time_df = read.csv("C:/dev/EconABM/time.csv")
+```
+
+
+
+```{r}
+bio_df = 
+  bio_df %>%
+  mutate(i = as.factor(i),
+         j = as.factor(j),
+         alive = as.logical(alive),
+         symptomatic = as.logical(symptomatic))
+```
+
+```{r}
+bio_df %>%
+  group_by(t) %>%
+  summarize(hlb=mean(hlbSeverity)) %>%
+  ggplot(aes(x=t,y=hlb)) +
+  geom_line()
+
+```
+
+
+```{r}
+acp =
+  bio_df %>%
+  group_by(t) %>%
+  summarize(totalUI = sum(numPsyllids),
+            totalI = sum(numInfectedPsyllids)) %>%
+  pivot_longer(cols=!t, names_to="psyllid_type", values_to = "count") %>%
+  ggplot(aes(x=t, y=count, color=psyllid_type)) +
+  geom_line() +
+  scale_y_continuous(labels = comma)
+  
+acp
+```
+
+
+
+
+```{r}
+  bio_df %>%
+  ggplot(aes(x=j,y=i,fill=hlbSeverity)) +
+  geom_tile() +
+  scale_color_manual(values=c("yellow","black")) +
+  scale_fill_gradient(low="blue", high="red", limits=c(0, 1), labels=scales::percent) +
+  theme_bw() +
+  coord_equal() +
+  theme(axis.text.y = element_blank(), axis.text.x=element_blank()) +
+  scale_y_discrete(limits = rev(levels(bio_df$i))) +
+  scale_x_discrete(limits = levels(bio_df$j)) +
+  labs(title='Day: {frame_time}') +
+  transition_time(t) +
+  ease_aes()
+
+```
+
+
+```{r}
+econ_df %>%
+  filter(t %% 365==0) %>%
+  mutate(yearly=returns - lag(returns)) %>%
+  ggplot(aes(x=t,y=yearly)) +
+  geom_line()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
