@@ -625,8 +625,8 @@ int main(int argc, char ** argv) {
     } 
     else {
         cout << "Using default filenames\n";
-        econConfigFile = "C:/dev/EconABM/configs/econConfig.json";
-        bioConfigFile = "C:/dev/EconABM/configs/bioConfig.json";
+        econConfigFile = "configs/econConfig.json";
+        bioConfigFile = "configs/bioConfig.json";
     }
     parseParameterFile(econConfigFile);
     bioABM::parseParameterFile(bioConfigFile);
