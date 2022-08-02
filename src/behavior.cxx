@@ -30,7 +30,7 @@ void sprayGrove(int* ibounds, int* jbounds, double efficacy) {
  * (w/o replacement) symptomatic trees. Returns number of trees
  * removed
  * **************************************************************/
-int checkAndRogue(int* ibounds, int* jbounds, int radius) {
+int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
     int removalCount = 0;
     boost::uniform_int<> gen(0,1);
     boost::random::mt19937 econ_rng(std::time(0));
@@ -38,8 +38,8 @@ int checkAndRogue(int* ibounds, int* jbounds, int radius) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
             if (bioABM::isSymptomatic(i,j) && gen(econ_rng) <= bioABM::getSeverityAt(i,j)) {
                 //Rogue within a certain radius
-                for (int k = -radius; k <= radius; k++) {
-                    for (int l = -radius; l <= radius; l++) {
+                for (int k = -height; k <= height; k++) {
+                    for (int l = -width; l <= width; l++) {
                         if (bioABM::isTreeAlive(i+k,j+l)) {
                             bioABM::rogueTreeAt(i+k,j+l);
                             removalCount++;
@@ -73,7 +73,12 @@ void DensePlanting::executeAction(Grove *g) {
     this->PlanActions();
 }
 void RogueTrees::executeAction(Grove *g) {
-    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius);
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius);
+    g->costs += this->surveyCost;
+    g->costs += numRemoved * this->removalCost;
+}
+void RectangularRogue::executeAction(Grove *g) {
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->width, this->height);
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
@@ -92,6 +97,17 @@ void RogueTrees::PlanActions() {
     }
 }
 
+void RectangularRogue::PlanActions() {
+    //Fill with false flags
+    for (int i = 0; i < 365; i++) {
+        q[i] = false;
+    }
+    //Check once at start of year, and every frequency days after
+    int daysPerSurvey = 365 / this->frequency;
+    for (int i = 0; i < 365; i += daysPerSurvey) {
+        q[i] = true;
+    }
+}
 
 void SprayTrees::executeAction(Grove *g) {
     sprayGrove(g->getIBounds(), g->getJBounds(), this->efficacy);

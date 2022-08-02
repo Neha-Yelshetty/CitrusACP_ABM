@@ -14,10 +14,11 @@ library(data.table)
 
 Load data files
 ```{r}
+containing_folder = "C:/dev/NewEconABM/"
 #Change to bio output file
-bio_df = fread("bio_output.csv")
+bio_df = fread(paste0(containing_folder,"bio_output.csv"))
 #Change to econ output file
-econ_df = read.csv("econ_output.csv")
+econ_df = read.csv(paste0(containing_folder,"econ_output.csv"))
 ```
 
 

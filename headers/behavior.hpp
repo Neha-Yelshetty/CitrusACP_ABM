@@ -103,6 +103,46 @@ public:
 
 };
 
+class RectangularRogue: public Behavior {
+public:
+    //Width dimension of rogue
+    int width;
+    //Height dimension of rogue
+    int height;
+    //Cost per tree remove
+    double removalCost;
+    //Cost per survey
+    double surveyCost;
+    //Number of surveys per year
+    int frequency; 
+
+    RectangularRogue(double removalCost, double surveyCost, int frequency, int width, int height) {
+        this->removalCost = removalCost;
+        this->width = width;
+        this->height = height;
+        this->frequency = frequency;
+        this->surveyCost = surveyCost;
+    }
+
+    //Check trees to be rogued based on frequency parameter
+    void PlanActions();
+
+    void executeAction(Grove *g);
+
+    double hlbSpread(int t, Grove *g) { return 0; };
+
+    //Unused and incorrect
+    double getVariableCosts() { return this->removalCost; }
+    string getName() { return "RectangularRogue"; }
+    string getParams() { 
+        stringstream ss;
+        ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost;
+        return ss.str();
+    }
+
+
+};
+
 class SprayTrees: public Behavior {
  private:
     //window around target dates
