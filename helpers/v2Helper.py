@@ -107,7 +107,7 @@ import copy
 configList = []
 numYears = math.floor(config_file["modelDuration"] / 365)
 for numInvasions in ["initial","half","all","double"]:
-    for _ in range(0,50):
+    for _ in range(0,25):
         filePrefix = f'{datetime.datetime.now()}'.replace(' ', '-').replace(':','.')
         config = json.loads(json.dumps(config_file))
         invasionDays = ""
@@ -229,9 +229,11 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
 #             appendMasterTriples(cnx_a, econ_copy, configList, f"rogueSprayVariations", masterConfigList, numSets=1)
 
 # RECTANGULAR ROGUE
-for frequency in [1,6,12,18,24]:
-    for width in [1,8,10,20,40]:
-        for height in [1,8,10,20,40]:
+for frequency in [1,6,18]:
+    for width in [1,8,20,40]:
+        for height in [1,8,20,40]:
+            if width == height:
+                continue
             econ_copy = copy.deepcopy(econConfig)
             econ_copy["strategyFlags"] = "0,0,0,1"
             econ_copy["strategyParameters"] = f"0,0,0,0,0,0,0,0,5,0,{frequency},{width},{height}"
@@ -239,9 +241,11 @@ for frequency in [1,6,12,18,24]:
 
 # RECTANGULAR ROGUE AND SPRAY
 for e in [600,700,800,900]:
-    for frequency in [1,6,12,18,24]:
-        for width in [1,8,10,20,40]:
-            for height in [1,8,10,20,40]:
+    for frequency in [1,6,18]:
+        for width in [1,8,20,40]:
+            for height in [1,8,20,40]:
+                if width == height:
+                    continue
                 econ_copy = copy.deepcopy(econConfig)
                 econ_copy["strategyFlags"] = "0,1,0,1"
                 econ_copy["strategyParameters"] = f"0,0,0,0,{e/1000},0,0,0,5,0,{frequency},{width},{height}"
