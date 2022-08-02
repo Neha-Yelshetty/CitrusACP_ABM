@@ -64,8 +64,8 @@ int initialNumPsyllids = 300;
 
 // Lattice dimensions
 // paper size: 69(nR) x 157 (rL)
-const int rowLength = 25;
-const int numRows = 11;
+const int rowLength = 69;
+const int numRows = 157;
 const int hBorders = 0;
 const int vBorders = 0;
 

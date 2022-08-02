@@ -204,7 +204,8 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
 #         appendMasterTriples(cnx_a,econ_copy, configList, f"l{int(lmbda*100)}_a{int(alpha*100)}", masterConfigList)
 
 
-#PARAMTER FORMAT: removalCost, surveyCost, frequency, radius, efficacy, spraycost, denseCosts, yield multiplier
+#PARAMTER FORMAT: removalCost, surveyCost, frequency, radius, efficacy, spraycost, denseCosts, 
+#                 yield multiplier, removalcost, surveycost, frequency, width, height
 #FIRST NEW TEST
 # for e in [600,700,800,900]:
 #     econ_copy = copy.deepcopy(econConfig)
@@ -219,13 +220,33 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
 #         econ_copy["strategyParameters"] = f"5,5,{frequency},{radius},0,5,5,0"
 #         appendMasterTriples(cnx_a, econ_copy, configList, f"rogueVariations", masterConfigList, numSets=1)
 # # # # #SPRAY AND ROGUE
+# for e in [600,700,800,900]:
+#     for frequency in [1,6,12,18,24]:
+#         for radius in [1,8,10,20,40]:
+#             econ_copy = copy.deepcopy(econConfig)
+#             econ_copy["strategyFlags"] = "1,1,0"
+#             econ_copy["strategyParameters"] = f"5,5,{frequency},{radius},{e/1000},5,5,0"
+#             appendMasterTriples(cnx_a, econ_copy, configList, f"rogueSprayVariations", masterConfigList, numSets=1)
+
+# RECTANGULAR ROGUE
+for frequency in [1,6,12,18,24]:
+    for width in [1,8,10,20,40]:
+        for height in [1,8,10,20,40]:
+            econ_copy = copy.deepcopy(econConfig)
+            econ_copy["strategyFlags"] = "0,0,0,1"
+            econ_copy["strategyParameters"] = f"0,0,0,0,0,0,0,0,5,0,{frequency},{width},{height}"
+            appendMasterTriples(cnx_a, econ_copy, configList, f"recRogueVariations", masterConfigList, numSets=1)
+
+# RECTANGULAR ROGUE AND SPRAY
 for e in [600,700,800,900]:
     for frequency in [1,6,12,18,24]:
-        for radius in [1,8,10,20,40]:
-            econ_copy = copy.deepcopy(econConfig)
-            econ_copy["strategyFlags"] = "1,1,0"
-            econ_copy["strategyParameters"] = f"5,5,{frequency},{radius},{e/1000},5,5,0"
-            appendMasterTriples(cnx_a, econ_copy, configList, f"rogueSprayVariations", masterConfigList, numSets=1)
+        for width in [1,8,10,20,40]:
+            for height in [1,8,10,20,40]:
+                econ_copy = copy.deepcopy(econConfig)
+                econ_copy["strategyFlags"] = "0,1,0,1"
+                econ_copy["strategyParameters"] = f"0,0,0,0,{e/1000},0,0,0,5,0,{frequency},{width},{height}"
+                appendMasterTriples(cnx_a, econ_copy, configList, f"recRogueSprayVariations", masterConfigList, numSets=1)
+
 # # # # DENSE PLANTING
 # for density in [20,80,140,200,220]:
 #     econ_copy = copy.deepcopy(econConfig)
