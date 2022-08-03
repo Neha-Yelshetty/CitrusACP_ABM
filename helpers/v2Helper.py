@@ -107,7 +107,7 @@ import copy
 configList = []
 numYears = math.floor(config_file["modelDuration"] / 365)
 for numInvasions in ["initial","half","all","double"]:
-    for _ in range(0,25):
+    for _ in range(0,50):
         filePrefix = f'{datetime.datetime.now()}'.replace(' ', '-').replace(':','.')
         config = json.loads(json.dumps(config_file))
         invasionDays = ""

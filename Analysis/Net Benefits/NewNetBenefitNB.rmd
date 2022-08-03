@@ -7,6 +7,7 @@ output: html_notebook
 library(dbplyr)
 library(tidyverse)
 library(stringr)
+library(hash)
 ```
 
 
@@ -70,6 +71,14 @@ df %>%
   ggplot(aes(x=t,y=returns, color=as.factor(efficacy))) +
   geom_point() +
   geom_line()
+  
+spraydf = 
+  df %>%
+    filter(strategy_names == "SprayTrees") %>%
+    separate(strategy_params, sep=";", into=c("efficacy","cost")) %>%
+    mutate(efficacy = as.numeric(efficacy),
+               numInvasions = str_count(invasionDays,",") + 1
+    )
   
 ```
 
@@ -202,109 +211,322 @@ df %>%
 
 ```
 
-
 ```{r}
-## Note that the since the high density plantings have no impact on the epi model, there is no need to simulate them. You can just modify expected yields and costs as needed
-yieldPrice = 17.60
-annualFixed = 2
-numYears = 5
-endingYear = 365*numYears
-meanSurveys = 12
+generateStatic = function(baseParameters, strategyParameters, shockParameters, title) {
+ 
+  
+  # Generate initial state based on parameters
+  spray_segment =
+    spraydf %>%
+      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+             efficacy == strategyParameters[["efficacy"]]) %>%
+      group_by(t,strategy_names) %>%
+      summarize(returns = mean(returns)) %>%
+      mutate(yearlyReturns = returns/(t/365),
+             anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+             id="S[1]",
+             shock=FALSE)
+  
+  rogue_segment = 
+    roguedf %>%
+    filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+           frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]]) %>%
+    group_by(t, strategy_names) %>%
+    summarize(returns = mean(returns)) %>%
+    mutate(yearlyReturns = returns/(t/365),
+           anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+           id="R[1]",
+           shock=FALSE)
+  
+  sprayrogue_segment = 
+    roguespraydf %>%
+    filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+           frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]], 
+           efficacy == strategyParameters[["efficacy"]]) %>%
+    summarize(returns = mean(returns)) %>%
+    mutate(yearlyReturns = returns/(t/365),
+           anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+           id="SR[1]",
+           shock=FALSE)
+  
+  noaction_segment = 
+    df %>%
+    filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]]) %>%
+    group_by(t,strategy_names) %>%
+    summarize(returns = mean(returns)) %>%
+    mutate(yearlyReturns = returns/(t/365),
+           anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+           id="B[1]",
+           shock=FALSE)
+    
+  
+  basedf = rbind(spray_segment, noaction_segment,rogue_segment,sprayrogue_segment) 
+  basedf = basedf %>% select(t, anAcreReturns, strategy_names, id, shock)
 
-noaction = 
-  df %>%
-    filter(t==endingYear) %>%
-    group_by(strategy_names) %>%
-    summarize(returns=mean(returns), costs=mean(costs)) %>%
-    filter(strategy_names=="NoAction") %>%
-    mutate(expectedYield = returns / yieldPrice)
+  baseChange = FALSE
+  # Updated strategy parameters with shock values
+  for (param in keys(shockParameters)) {
+    if (param %in% keys(strategyParameters)) {
+      strategyParameters[[param]] = shockParameters[[param]]
+    }
+    else if (param %in% keys(baseParameters)) {
+      baseParameters[[param]] = shockParameters[[param]]
+      baseChange = TRUE
+    }
+  }
+  
+  shockdf = data.frame(t=numeric(), anAcreReturns=numeric(), id=character(), shock=numeric())
+  
+  # Spray shock
+  if (max(c("efficacy") %in% keys(shockParameters)) || baseChange) {
+    spray_shock =
+    spraydf %>%
+      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+             efficacy == strategyParameters[["efficacy"]]) %>%
+      group_by(t,strategy_names) %>%
+      summarize(returns = mean(returns)) %>%
+      mutate(yearlyReturns = returns/(t/365),
+             anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+             id="S[2]",
+             shock=TRUE) %>%
+      select(t, anAcreReturns, strategy_names, id, shock)
+    shockdf = rbind(shockdf,spray_shock)
+  }
+  # Rogue shock
+  if (max(c("frequency","radius") %in% keys(shockParameters)) || baseChange) {
+    rogue_shock = 
+      roguedf %>%
+      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+             frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]]) %>%
+      group_by(t, strategy_names) %>%
+      summarize(returns = mean(returns)) %>%
+      mutate(yearlyReturns = returns/(t/365),
+             anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+             id="R[2]",
+             shock=TRUE) %>%
+      select(t, anAcreReturns, strategy_names, id, shock)
+      shockdf = rbind(shockdf, rogue_shock)
+  }
+  
+  #Spraynrogue shock
+  if (max(c("frequency","radius","efficacy") %in% keys(shockParameters)) || baseChange) {
+    sprayrogue_shock = 
+      roguespraydf %>%
+      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+             frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]], 
+             efficacy == strategyParameters[["efficacy"]]) %>%
+      summarize(returns = mean(returns)) %>%
+      mutate(yearlyReturns = returns/(t/365),
+             anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+             id="SR[2]",
+             shock=TRUE) %>%
+      select(t, anAcreReturns, strategy_names, id, shock)
+    shockdf = rbind(shockdf, sprayrogue_shock)
 
-
-## SPRAYING EXPECTED YIELD
-onlySprays = 
-  df %>%
-    filter(t==endingYear) %>%
-    group_by(strategy_names) %>%
-    summarize(returns=mean(returns), costs=mean(costs)) %>%
-    mutate(highDensity = grepl("Dense",strategy_names)) %>%
-    filter(grepl("SprayTrees", strategy_names), !grepl("RogueTrees",strategy_names), !highDensity) %>%
-    mutate(expectedYield = returns / yieldPrice)
-
-## ROGUEING EXPECTED YIELD AND REMOVAL
-onlyRogues = 
-  df %>%
-    filter(t==endingYear) %>%
-    group_by(strategy_names) %>%
-    summarize(returns=mean(returns), costs=mean(costs)) %>%
-    mutate(highDensity = grepl("Dense",strategy_names)) %>%
-    filter(!highDensity) %>%
-    filter(!grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>%
-    mutate(expectedYield = returns / yieldPrice,
-           expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears)/5) 
-## SPRAYING AND ROGUEING EXPECTED YIELD AND REMOVAL
-roguenspray = 
-  df %>%
-    filter(t==endingYear) %>%
-    group_by(strategy_names) %>%
-    summarize(returns=mean(returns), costs=mean(costs)) %>%
-    mutate(highDensity = grepl("Dense",strategy_names)) %>%
-    filter(!highDensity) %>%
-    filter(grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>%
-    mutate(expectedYield = returns / yieldPrice,
-           expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears-6*numYears*5)/5) 
-
-
-expectedYield_na = noaction$expectedYield
-expectedYield_rogue = onlyRogues$expectedYield
-expectedYield_spray = onlySprays$expectedYield
-expectedYield_roguenspray = roguenspray$expectedYield
-expectedRemovals_rogue = 200
-expectedRemovals_roguenspray = roguenspray$expectedRemovalCount
+  }
+  
+  #No action shock
+  if (baseChange) {
+    noaction_shock = 
+      df %>%
+      filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]]) %>%
+      group_by(t,strategy_names) %>%
+      summarize(returns = mean(returns)) %>%
+      mutate(yearlyReturns = returns/(t/365),
+             anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
+             id="B[2]",
+             shock=TRUE) %>%
+      select(t, anAcreReturns, strategy_names, id, shock)
+    shockdf = rbind(shockdf, noaction_shock)
+  }
+  
+  
+  
+  alldf = rbind(basedf,shockdf)
+  
+  
+  static = 
+    alldf %>%  
+      ggplot() +
+      geom_line(size=1,aes(x=t/365,y=anAcreReturns, color=as.factor(strategy_names), linetype=shock)) +
+      theme_classic() +
+      labs(title=title, x="Simulation length in years", y="Average annual returns per acre") +
+      guides(linetype = "none", color = "none") +
+      geom_text(data =
+                  alldf %>%
+                  ungroup() %>%
+                  filter(t == last(t)),
+                aes(label = id,
+                    x = t/365 + 1,
+                    y = anAcreReturns),
+                parse = TRUE
+                ) +
+      geom_hline(yintercept = 0, linetype="dashed")
+  return(static)
+}
 ```
 
-```{r}
-yield_multiplier=1.5
-numAcres = 1.26
-t = numYears
-c = 9293*numAcres
-p = 17.60
-noHLB_annualyield = 28046.637*yield_multiplier
-c_spray = 107.73*numAcres
-c_removal = 20
-c_labor = 20
-survey_hours = 1.678*numAcres
-n_surveys = 1
-c_s1 = 6*c_spray*t
-c_s2 = c_removal * expectedRemovals_rogue + c_labor*survey_hours*n_surveys*t
-c_s3 = c_s1 + c_removal*expectedRemovals_roguenspray + c_labor*survey_hours*n_surveys*t
-
-
-statics_df = 
-  data.frame(
-    strategy=c("No Action", "Spraying", "Rogueing", "Spraying and Rogueing"),
-    returns=c(expectedYield_na*p*yield_multiplier, expectedYield_spray*p*yield_multiplier, expectedYield_rogue*p*yield_multiplier, expectedYield_roguenspray*p*yield_multiplier),
-    costs = c(c*t, c*t+c_s1, c*t+c_s2, c*t+c_s3)
-    )
-
-statics_df = statics_df %>% mutate(profit = returns - costs)
-
-```
-
-BASE GRAPH
 
 ```{r}
-statics_df %>%
-  mutate(noHLB_profit = noHLB_annualyield*t*p - costs) %>%
-  select(strategy,profit,noHLB_profit) %>% 
-  pivot_longer(!strategy, names_to="HLB", values_to="profit") %>%
-  mutate(hlbRisk = as.numeric(!grepl("HLB",HLB)),
-        annualAcreProfit = profit/numAcres/t        
-        ) %>%
-  ggplot(aes(x=hlbRisk,y=annualAcreProfit,shape=strategy)) +
-  geom_line() +
-  geom_point()
+baseParams = hash()
+strategyParams = hash()
+shockParams = hash()
 
+baseParams[["numInvasions"]] = 1
+baseParams[["numYears"]] = 25
+baseParams[["yieldPrice"]] = 18
+baseParams[["numAcres"]] = 50
+strategyParams[["efficacy"]] = 0.6
+strategyParams[["frequency"]] = 6
+strategyParams[["radius"]] = 20
+shockParams[["numInvasions"]] = 25
+
+static = generateStatic(baseParams, strategyParams, shockParams, "Number of invasions 1->25")
+
+static
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ```{r} -->
+<!-- ## Note that the since the high density plantings have no impact on the epi model, there is no need to simulate them. You can just modify expected yields and costs as needed -->
+<!-- yieldPrice = 17.60 -->
+<!-- annualFixed = 2 -->
+<!-- numYears = 5 -->
+<!-- endingYear = 365*numYears -->
+<!-- meanSurveys = 12 -->
+
+<!-- noaction =  -->
+<!--   df %>% -->
+<!--     filter(t==endingYear) %>% -->
+<!--     group_by(strategy_names) %>% -->
+<!--     summarize(returns=mean(returns), costs=mean(costs)) %>% -->
+<!--     filter(strategy_names=="NoAction") %>% -->
+<!--     mutate(expectedYield = returns / yieldPrice) -->
+
+
+<!-- ## SPRAYING EXPECTED YIELD -->
+<!-- onlySprays =  -->
+<!--   df %>% -->
+<!--     filter(t==endingYear) %>% -->
+<!--     group_by(strategy_names) %>% -->
+<!--     summarize(returns=mean(returns), costs=mean(costs)) %>% -->
+<!--     mutate(highDensity = grepl("Dense",strategy_names)) %>% -->
+<!--     filter(grepl("SprayTrees", strategy_names), !grepl("RogueTrees",strategy_names), !highDensity) %>% -->
+<!--     mutate(expectedYield = returns / yieldPrice) -->
+
+<!-- ## ROGUEING EXPECTED YIELD AND REMOVAL -->
+<!-- onlyRogues =  -->
+<!--   df %>% -->
+<!--     filter(t==endingYear) %>% -->
+<!--     group_by(strategy_names) %>% -->
+<!--     summarize(returns=mean(returns), costs=mean(costs)) %>% -->
+<!--     mutate(highDensity = grepl("Dense",strategy_names)) %>% -->
+<!--     filter(!highDensity) %>% -->
+<!--     filter(!grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>% -->
+<!--     mutate(expectedYield = returns / yieldPrice, -->
+<!--            expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears)/5)  -->
+<!-- ## SPRAYING AND ROGUEING EXPECTED YIELD AND REMOVAL -->
+<!-- roguenspray =  -->
+<!--   df %>% -->
+<!--     filter(t==endingYear) %>% -->
+<!--     group_by(strategy_names) %>% -->
+<!--     summarize(returns=mean(returns), costs=mean(costs)) %>% -->
+<!--     mutate(highDensity = grepl("Dense",strategy_names)) %>% -->
+<!--     filter(!highDensity) %>% -->
+<!--     filter(grepl("SprayTrees", strategy_names), grepl("RogueTrees",strategy_names)) %>% -->
+<!--     mutate(expectedYield = returns / yieldPrice, -->
+<!--            expectedRemovalCount = (costs-5*meanSurveys*numYears-annualFixed*numYears-6*numYears*5)/5)  -->
+
+
+<!-- expectedYield_na = noaction$expectedYield -->
+<!-- expectedYield_rogue = onlyRogues$expectedYield -->
+<!-- expectedYield_spray = onlySprays$expectedYield -->
+<!-- expectedYield_roguenspray = roguenspray$expectedYield -->
+<!-- expectedRemovals_rogue = 200 -->
+<!-- expectedRemovals_roguenspray = roguenspray$expectedRemovalCount -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- yield_multiplier=1.5 -->
+<!-- numAcres = 1.26 -->
+<!-- t = numYears -->
+<!-- c = 9293*numAcres -->
+<!-- p = 17.60 -->
+<!-- noHLB_annualyield = 28046.637*yield_multiplier -->
+<!-- c_spray = 107.73*numAcres -->
+<!-- c_removal = 20 -->
+<!-- c_labor = 20 -->
+<!-- survey_hours = 1.678*numAcres -->
+<!-- n_surveys = 1 -->
+<!-- c_s1 = 6*c_spray*t -->
+<!-- c_s2 = c_removal * expectedRemovals_rogue + c_labor*survey_hours*n_surveys*t -->
+<!-- c_s3 = c_s1 + c_removal*expectedRemovals_roguenspray + c_labor*survey_hours*n_surveys*t -->
+
+
+<!-- statics_df =  -->
+<!--   data.frame( -->
+<!--     strategy=c("No Action", "Spraying", "Rogueing", "Spraying and Rogueing"), -->
+<!--     returns=c(expectedYield_na*p*yield_multiplier, expectedYield_spray*p*yield_multiplier, expectedYield_rogue*p*yield_multiplier, expectedYield_roguenspray*p*yield_multiplier), -->
+<!--     costs = c(c*t, c*t+c_s1, c*t+c_s2, c*t+c_s3) -->
+<!--     ) -->
+
+<!-- statics_df = statics_df %>% mutate(profit = returns - costs) -->
+
+<!-- ``` -->
+
+<!-- BASE GRAPH -->
+
+<!-- ```{r} -->
+<!-- statics_df %>% -->
+<!--   mutate(noHLB_profit = noHLB_annualyield*t*p - costs) %>% -->
+<!--   select(strategy,profit,noHLB_profit) %>%  -->
+<!--   pivot_longer(!strategy, names_to="HLB", values_to="profit") %>% -->
+<!--   mutate(hlbRisk = as.numeric(!grepl("HLB",HLB)), -->
+<!--         annualAcreProfit = profit/numAcres/t         -->
+<!--         ) %>% -->
+<!--   ggplot(aes(x=hlbRisk,y=annualAcreProfit,shape=strategy)) + -->
+<!--   geom_line() + -->
+<!--   geom_point() -->
+
+<!-- ``` -->
 
 
 
