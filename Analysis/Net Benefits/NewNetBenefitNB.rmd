@@ -214,14 +214,15 @@ df %>%
 ```{r}
 generateStatic = function(baseParameters, strategyParameters, shockParameters, title) {
  
+  #Trying something here
   
   # Generate initial state based on parameters
   spray_segment =
     spraydf %>%
-      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+      filter(t <= baseParameters[["numYears"]] * 365, 
              efficacy == strategyParameters[["efficacy"]]) %>%
       group_by(t,strategy_names) %>%
-      summarize(returns = mean(returns)) %>%
+      summarize(returns = mean(returns), hlb = mean(hlb)) %>%
       mutate(yearlyReturns = returns/(t/365),
              anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
              id="S[1]",
@@ -229,10 +230,10 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
   
   rogue_segment = 
     roguedf %>%
-    filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+    filter(t <= baseParameters[["numYears"]] * 365,
            frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]]) %>%
     group_by(t, strategy_names) %>%
-    summarize(returns = mean(returns)) %>%
+    summarize(returns = mean(returns), hlb=mean(hlb)) %>%
     mutate(yearlyReturns = returns/(t/365),
            anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
            id="R[1]",
@@ -240,10 +241,10 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
   
   sprayrogue_segment = 
     roguespraydf %>%
-    filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+    filter(t <= baseParameters[["numYears"]] * 365, 
            frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]], 
            efficacy == strategyParameters[["efficacy"]]) %>%
-    summarize(returns = mean(returns)) %>%
+    summarize(returns = mean(returns), hlb=mean(hlb)) %>%
     mutate(yearlyReturns = returns/(t/365),
            anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
            id="SR[1]",
@@ -251,9 +252,9 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
   
   noaction_segment = 
     df %>%
-    filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]]) %>%
+    filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365) %>%
     group_by(t,strategy_names) %>%
-    summarize(returns = mean(returns)) %>%
+    summarize(returns = mean(returns), hlb=mean(hlb)) %>%
     mutate(yearlyReturns = returns/(t/365),
            anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
            id="B[1]",
@@ -261,7 +262,7 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
     
   
   basedf = rbind(spray_segment, noaction_segment,rogue_segment,sprayrogue_segment) 
-  basedf = basedf %>% select(t, anAcreReturns, strategy_names, id, shock)
+  basedf = basedf %>% select(t, anAcreReturns, strategy_names, id, shock, hlb)
 
   baseChange = FALSE
   # Updated strategy parameters with shock values
@@ -275,36 +276,36 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
     }
   }
   
-  shockdf = data.frame(t=numeric(), anAcreReturns=numeric(), id=character(), shock=numeric())
+  shockdf = data.frame(t=numeric(), anAcreReturns=numeric(), id=character(), shock=numeric(), hlb=numeric())
   
   # Spray shock
   if (max(c("efficacy") %in% keys(shockParameters)) || baseChange) {
     spray_shock =
     spraydf %>%
-      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+      filter(t <= baseParameters[["numYears"]] * 365, 
              efficacy == strategyParameters[["efficacy"]]) %>%
       group_by(t,strategy_names) %>%
-      summarize(returns = mean(returns)) %>%
+      summarize(returns = mean(returns), hlb=mean(hlb)) %>%
       mutate(yearlyReturns = returns/(t/365),
              anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
              id="S[2]",
              shock=TRUE) %>%
-      select(t, anAcreReturns, strategy_names, id, shock)
+      select(t, anAcreReturns, strategy_names, id, shock, hlb)
     shockdf = rbind(shockdf,spray_shock)
   }
   # Rogue shock
   if (max(c("frequency","radius") %in% keys(shockParameters)) || baseChange) {
     rogue_shock = 
       roguedf %>%
-      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+      filter(t <= baseParameters[["numYears"]] * 365, 
              frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]]) %>%
       group_by(t, strategy_names) %>%
-      summarize(returns = mean(returns)) %>%
+      summarize(returns = mean(returns), hlb=mean(hlb)) %>%
       mutate(yearlyReturns = returns/(t/365),
              anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
              id="R[2]",
              shock=TRUE) %>%
-      select(t, anAcreReturns, strategy_names, id, shock)
+      select(t, anAcreReturns, strategy_names, id, shock, hlb)
       shockdf = rbind(shockdf, rogue_shock)
   }
   
@@ -312,15 +313,15 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
   if (max(c("frequency","radius","efficacy") %in% keys(shockParameters)) || baseChange) {
     sprayrogue_shock = 
       roguespraydf %>%
-      filter(t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]], 
+      filter(t <= baseParameters[["numYears"]] * 365, 
              frequency == strategyParameters[["frequency"]], radius == strategyParameters[["radius"]], 
              efficacy == strategyParameters[["efficacy"]]) %>%
-      summarize(returns = mean(returns)) %>%
+      summarize(returns = mean(returns), hlb=mean(hlb)) %>%
       mutate(yearlyReturns = returns/(t/365),
              anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
              id="SR[2]",
              shock=TRUE) %>%
-      select(t, anAcreReturns, strategy_names, id, shock)
+      select(t, anAcreReturns, strategy_names, id, shock, hlb)
     shockdf = rbind(shockdf, sprayrogue_shock)
 
   }
@@ -329,26 +330,30 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
   if (baseChange) {
     noaction_shock = 
       df %>%
-      filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365, numInvasions == baseParameters[["numInvasions"]]) %>%
+      filter(strategy_names == "NoAction", t <= baseParameters[["numYears"]] * 365) %>%
       group_by(t,strategy_names) %>%
       summarize(returns = mean(returns)) %>%
       mutate(yearlyReturns = returns/(t/365),
              anAcreReturns = yearlyReturns / baseParameters[["numAcres"]],
              id="B[2]",
              shock=TRUE) %>%
-      select(t, anAcreReturns, strategy_names, id, shock)
+      select(t, anAcreReturns, strategy_names, id, shock, hlb)
     shockdf = rbind(shockdf, noaction_shock)
   }
+  
+  
   
   
   
   alldf = rbind(basedf,shockdf)
   
   
-  static = 
+  
+  
+  returns_static = 
     alldf %>%  
       ggplot() +
-      geom_line(size=1,aes(x=t/365,y=anAcreReturns, color=as.factor(strategy_names), linetype=shock)) +
+      geom_line(size=1,aes(x=t/365,y=anAcreReturns, color=as.factor(strategy_names), linetype=as.logical(shock))) +
       theme_classic() +
       labs(title=title, x="Simulation length in years", y="Average annual returns per acre") +
       guides(linetype = "none", color = "none") +
@@ -362,7 +367,25 @@ generateStatic = function(baseParameters, strategyParameters, shockParameters, t
                 parse = TRUE
                 ) +
       geom_hline(yintercept = 0, linetype="dashed")
-  return(static)
+  hlb_static = 
+    alldf %>%  
+      ggplot() +
+      geom_line(size=1,aes(x=t/365,y=hlb, color=as.factor(strategy_names), linetype=as.logical(shock))) +
+      theme_classic() +
+      labs(title=title, x="Simulation length in years", y="Average annual returns per acre") +
+      guides(linetype = "none", color = "none") +
+      geom_text(data =
+                  alldf %>%
+                  ungroup() %>%
+                  filter(t == last(t)),
+                aes(label = id,
+                    x = t/365 + 1,
+                    y = hlb),
+                parse = TRUE
+                ) +
+      geom_hline(yintercept = 0, linetype="dashed")
+    
+  return(hlb_static)
 }
 ```
 
@@ -372,15 +395,14 @@ baseParams = hash()
 strategyParams = hash()
 shockParams = hash()
 
-baseParams[["numInvasions"]] = 1
+#baseParams[["numInvasions"]] = 1
 baseParams[["numYears"]] = 25
 baseParams[["yieldPrice"]] = 18
 baseParams[["numAcres"]] = 50
-strategyParams[["efficacy"]] = 0.6
+strategyParams[["efficacy"]] = 0.7
 strategyParams[["frequency"]] = 6
-strategyParams[["radius"]] = 20
-shockParams[["numInvasions"]] = 25
-
+strategyParams[["radius"]] = 1
+shockParams[["radius"]] = 20 
 static = generateStatic(baseParams, strategyParams, shockParams, "Number of invasions 1->25")
 
 static
