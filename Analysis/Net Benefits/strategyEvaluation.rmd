@@ -14,7 +14,7 @@ con = DBI::dbConnect(RPostgres::Postgres(),
                      user="postgres",
                      dbname="netbenefits",
                      password="CitrusABM21",
-                     host="12.42.204.89")
+                     host="172.31.208.206")
 econ = tbl(con, "econ")
 ```
 
