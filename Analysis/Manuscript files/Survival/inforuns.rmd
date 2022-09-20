@@ -25,7 +25,7 @@ library(viridis)
 Connect to db
 ```{r}
 con = DBI::dbConnect(RPostgres::Postgres(), 
-                     host="12.42.204.89",
+                     host="172.31.208.206",
                      user="postgres",
                      dbname="citrus",
                      password="CitrusABM21")

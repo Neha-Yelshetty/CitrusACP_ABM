@@ -14,7 +14,7 @@ library(dbplyr)
 Connect to db
 ```{r}
 con = DBI::dbConnect(RPostgres::Postgres(),
-                     host="12.42.204.89",
+                     host="172.31.208.206",
                      dbname="citrus",
                      user="postgres",
                      password="CitrusABM21")
