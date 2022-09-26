@@ -5,7 +5,6 @@
 #include "planningFunc.hpp"
 #include "bioABM.h"
 #include<vector>
-#include <iostream>
 
 
 using namespace std;
@@ -176,7 +175,6 @@ class SprayTrees: public Behavior {
 
         //Returns the variable costs per year
         double getVariableCosts() { return this->sprayCost; }
-        cout << "I am inside spray tree behaviour ";
         string getName() { return "SprayTrees"; }
         string getParams() { 
             stringstream ss;
