@@ -1055,15 +1055,17 @@ void parseParameterFile(string fileName) {
 
         vector<string> invasionDays_str = split(invasionDays, ",");
         for (int i = 0; i < invasionDays_str.size(); i++) {
+            cout<<invasionDays_str[i];
             invasionDays_q.push(stoi(invasionDays_str[i]));
         }
         vector<string> invasionModalities_str = split(invasionModalities, ",");
         for (int i = 0; i < invasionModalities_str.size(); i++) {
+            cout<<invasionDays_str[i];
             invasionModalities_q.push(stoi(invasionModalities_str[i]));
         }
     }
-    catch (exception e) {
-        cout << "ERROR WITH BIO JSON" << e.what() << endl;
+    catch (const std::exception &e) {
+        cout << "ERROR WITH BIO JSON - " << e.what() << endl;
         exit(-1);
     }
 }
