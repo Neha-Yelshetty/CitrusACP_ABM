@@ -1052,15 +1052,15 @@ void parseParameterFile(string fileName) {
             invasionDays, carryingCapacity, borderCrossingP, springFlushStart,
             springFlushEnd, summerFlushStart, summerFlushEnd, fallFlushStart,
             fallFlushEnd, invasionModalities, invasionGrove, outputFlag);
-
+       
         vector<string> invasionDays_str = split(invasionDays, ",");
         for (int i = 0; i < invasionDays_str.size(); i++) {
-            cout<<invasionDays_str[i];
+            //cout<<invasionDays_str[i];
             invasionDays_q.push(stoi(invasionDays_str[i]));
         }
         vector<string> invasionModalities_str = split(invasionModalities, ",");
         for (int i = 0; i < invasionModalities_str.size(); i++) {
-            cout<<invasionDays_str[i];
+           // cout<<invasionDays_str[i];
             invasionModalities_q.push(stoi(invasionModalities_str[i]));
         }
     }
@@ -1532,6 +1532,7 @@ void ageFlush() {
  * ****************************************/
 void advanceBiologicalModel() {
     //First time function is called
+    cout << "Advance Biological Model";
     if (!modelStarted) {
         initializeModel();
         if (outputFlag) {
