@@ -98,16 +98,19 @@ void InitialiseCHMA(Commodity crop) {
     int cropColSize = latticeCols / ParameterSet::gridWidth;
     for (int i = 0; i < ParameterSet::gridLength*ParameterSet::gridWidth; i++) {
         //Create grove
+
         int i_lb = (i / ParameterSet::gridLength) * cropRowSize;
         int i_ub = i_lb + cropRowSize;
         int j_lb = (i % ParameterSet::gridLength) * cropColSize;
         int j_ub = j_lb + cropColSize;
         bool agency = (stoi(agencyParams[i]) == 1);
+       
         agents[i] = Grove(crop, agency, i_lb, i_ub, j_lb, j_ub);
         
         //Create and assign strategy vector
         vector<string> sFlags_agent = split(sFlags[i], ",");
         vector<string> sParams_agent = split(sParams[i], ",");
+       
         //Rogue trees
         if (stoi(sFlags_agent[0]) == 1) {
             agents[i].behaviorPatterns.push_back(new RogueTrees(stod(sParams_agent[0]),
@@ -125,18 +128,18 @@ void InitialiseCHMA(Commodity crop) {
                                              bioABM::getFallStart());
             agents[i].behaviorPatterns.push_back(spray);
         }
-        cout << "Inside InitialiseCHMA";
+                    
         //Denser planting
         if (stoi(sFlags_agent[2]) == 1) {
-            cout << "Denseplanting";
+             
             Behavior * dPlant = new DensePlanting(
                 stod(sParams_agent[6]),
                 stod(sParams_agent[7])
             );
             agents[i].behaviorPatterns.push_back(dPlant);
         }
-
         if (stoi(sFlags_agent[3]) == 1) {
+            
             Behavior * wideRogue = new RectangularRogue(
                 stod(sParams_agent[8]),
                 stod(sParams_agent[9]),
@@ -146,10 +149,11 @@ void InitialiseCHMA(Commodity crop) {
             );
         }
         
-        
     }
+
+    
     //Initial logging and planning
-    for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) {
+    for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) { 
         for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
             agents[i].behaviorPatterns[k]->PlanActions();
         }
@@ -564,7 +568,6 @@ void writeCSVLine() {
 * complete
 **************************************************************/
 void runModel() {
-   cout << "Inside run model";
     while (bioABM::getModelDay() <= bioABM::getModelDuration()) {
         // Stage 1: Psyllid Growth and Movement
         Phase1();
@@ -629,7 +632,6 @@ Commodity getCommodity() {
 int main(int argc, char ** argv) {
     string econConfigFile;
     string bioConfigFile;
-   cout << "Inside main";
     if (argc == 3) {
         econConfigFile = argv[1];
         bioConfigFile = argv[2];

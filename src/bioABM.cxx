@@ -1532,7 +1532,6 @@ void ageFlush() {
  * ****************************************/
 void advanceBiologicalModel() {
     //First time function is called
-    cout << "Advance Biological Model";
     if (!modelStarted) {
         initializeModel();
         if (outputFlag) {
