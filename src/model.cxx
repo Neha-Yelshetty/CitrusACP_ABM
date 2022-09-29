@@ -125,8 +125,10 @@ void InitialiseCHMA(Commodity crop) {
                                              bioABM::getFallStart());
             agents[i].behaviorPatterns.push_back(spray);
         }
+        cout << "Inside InitialiseCHMA";
         //Denser planting
         if (stoi(sFlags_agent[2]) == 1) {
+            cout << "Denseplanting";
             Behavior * dPlant = new DensePlanting(
                 stod(sParams_agent[6]),
                 stod(sParams_agent[7])
