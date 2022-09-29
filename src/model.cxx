@@ -562,7 +562,7 @@ void writeCSVLine() {
 * complete
 **************************************************************/
 void runModel() {
-   
+   cout << "Inside run model";
     while (bioABM::getModelDay() <= bioABM::getModelDuration()) {
         // Stage 1: Psyllid Growth and Movement
         Phase1();
