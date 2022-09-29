@@ -629,7 +629,7 @@ Commodity getCommodity() {
 int main(int argc, char ** argv) {
     string econConfigFile;
     string bioConfigFile;
-
+   cout << "Inside main";
     if (argc == 3) {
         econConfigFile = argv[1];
         bioConfigFile = argv[2];
