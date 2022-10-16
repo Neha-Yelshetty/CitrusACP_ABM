@@ -138,8 +138,8 @@ void InitialiseCHMA(Commodity crop) {
             );
             agents[i].behaviorPatterns.push_back(dPlant);
         }
+
         if (stoi(sFlags_agent[3]) == 1) {
-            
             Behavior * wideRogue = new RectangularRogue(
                 stod(sParams_agent[8]),
                 stod(sParams_agent[9]),
@@ -147,6 +147,7 @@ void InitialiseCHMA(Commodity crop) {
                 stoi(sParams_agent[11]),
                 stoi(sParams_agent[12])
             );
+             agents[i].behaviorPatterns.push_back(wideRogue);
         }
         
     }
