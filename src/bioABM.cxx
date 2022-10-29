@@ -61,6 +61,7 @@ double borderCrossingP = 0.01;
 bool outputFlag = false;
 float initialInfectedPortion = 0.18;
 int initialNumPsyllids = 300;
+int hlbseverityon = true;
 
 // Lattice dimensions
 // paper size: 69(nR) x 157 (rL)
@@ -204,19 +205,23 @@ struct FlushPatch {
 
     //Calculate HLB severity, which is measured as the proportion of infected flushes
     double getHLBSeverity() {
+        
         int uninfected = accumulate(numShoots.begin(), numShoots.end(), 0);
         int infected = accumulate(numInfectedShoots.begin(), numInfectedShoots.end(), 0);
         double hlbNum = (double)infected + (double)oldInfectedShoots;
         double hlbDenom = (double)uninfected + (double)oldUninfectedShoots + (double)hlbNum;
        
-        if (hlbDenom == 0) {
-            return 0;
-        }
-        else {
-            assert((hlbNum / hlbDenom) >= 0 && (hlbNum / hlbDenom) <= 1);
-            double severity = hlbNum / hlbDenom;
-            return severity;
-        }
+      
+            if (hlbDenom == 0 || hlbseverityon) {
+            
+                return 0;
+            }
+            else {
+                assert((hlbNum / hlbDenom) >= 0 && (hlbNum / hlbDenom) <= 1);
+                double severity = hlbNum / hlbDenom;
+                return severity;
+            }
+        
 
     }
 
