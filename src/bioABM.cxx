@@ -61,7 +61,7 @@ double borderCrossingP = 0.01;
 bool outputFlag = false;
 float initialInfectedPortion = 0.18;
 int initialNumPsyllids = 300;
-int hlbseverityon = true;
+int hlbseverityon = false;
 
 // Lattice dimensions
 // paper size: 69(nR) x 157 (rL)

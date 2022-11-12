@@ -34,13 +34,18 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
     int removalCount = 0;
     boost::uniform_int<> gen(0,1);
     boost::random::mt19937 econ_rng(std::time(0));
+     //cout<< gen(econ_rng)  << econ_rng << endl;
     for (int i = ibounds[0]; i < ibounds[1]; i++) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
+            
             if (bioABM::isSymptomatic(i,j) && gen(econ_rng) <= bioABM::getSeverityAt(i,j)) {
+                cout<< bioABM::isSymptomatic(i,j) << "," << gen(econ_rng) << "," << bioABM::getSeverityAt(i,j) << endl;
                 //Rogue within a certain radius
+                cout<< "condition1" << endl;
                 for (int k = -height; k <= height; k++) {
                     for (int l = -width; l <= width; l++) {
                         if (bioABM::isTreeAlive(i+k,j+l)) {
+                           // cout<< "condition2" << endl;
                             bioABM::rogueTreeAt(i+k,j+l);
                             removalCount++;
                         }
@@ -74,6 +79,7 @@ void DensePlanting::executeAction(Grove *g) {
 }
 void RogueTrees::executeAction(Grove *g) {
     int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius);
+    //cout<<numRemoved<<endl;
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
