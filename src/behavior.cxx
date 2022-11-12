@@ -56,8 +56,10 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
         }
     }
     if(removalCount > 0)
+    {
       cout <<removalCount<<endl;
       cout <<"-----------------"<<endl;
+    }
     return removalCount;
 }
 
