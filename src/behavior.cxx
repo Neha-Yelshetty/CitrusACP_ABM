@@ -38,11 +38,11 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
     for (int i = ibounds[0]; i < ibounds[1]; i++) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
             if(bioABM::isSymptomatic(i,j))
-              cout<< bioABM::isSymptomatic(i,j) << "," << gen(econ_rng) << "," << bioABM::getSeverityAt(i,j) << endl;
+           //   cout<< bioABM::isSymptomatic(i,j) << "," << gen(econ_rng) << "," << bioABM::getSeverityAt(i,j) << endl;
             if (bioABM::isSymptomatic(i,j) && gen(econ_rng) <= bioABM::getSeverityAt(i,j)) {
                 
                 //Rogue within a certain radius
-                cout<< "condition1" << endl;
+               // cout<< "condition1" << endl;
                 for (int k = -height; k <= height; k++) {
                     for (int l = -width; l <= width; l++) {
                         if (bioABM::isTreeAlive(i+k,j+l)) {
@@ -55,11 +55,12 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
             }
         }
     }
+
     if(removalCount > 0)
     {
-      cout <<removalCount<<endl;
-      cout <<"-----------------"<<endl;
+        cout << bioABM::getModelDay() << "---" << removalCount;
     }
+    
     return removalCount;
 }
 
