@@ -58,7 +58,7 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
 
     if(removalCount > 0)
     {
-        cout << bioABM::getModelDay() << "---" << removalCount;
+        cout << bioABM::getModelDay() << "---" << removalCount <<endl;
     }
     
     return removalCount;
