@@ -117,9 +117,11 @@ void InitialiseCHMA(Commodity crop) {
                                                                 stod(sParams_agent[1]),
                                                                 stod(sParams_agent[2]),
                                                                 stod(sParams_agent[3]),
-                                                                stoi(sParams_agent[4]))
+                                                                stod(sParams_agent[4]))
                                                 );
         }
+
+             
         //Spraying
         if (stoi(sFlags_agent[1]) == 1) {
             Behavior* spray = new SprayTrees(stod(sParams_agent[5]),
@@ -147,7 +149,7 @@ void InitialiseCHMA(Commodity crop) {
                 stoi(sParams_agent[11]),
                 stoi(sParams_agent[12]),
                 stoi(sParams_agent[13]),
-                stoi(sParams_agent[14])
+                stod(sParams_agent[14])
             );
              agents[i].behaviorPatterns.push_back(wideRogue);
         }

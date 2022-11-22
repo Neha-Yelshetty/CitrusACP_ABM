@@ -78,7 +78,7 @@ public:
     int frequency; 
     //Radius of surrounding trees removed
     int radius;
-
+    //threshold cost
     double thresholdseverity;
 
     RogueTrees(double removalCost, double surveyCost, int frequency, int radius,double thresholdseverity) {
@@ -101,7 +101,8 @@ public:
     string getName() { return "RogueTrees"; }
     string getParams() { 
         stringstream ss;
-        ss << frequency << ";" << radius << ";" << removalCost << ";" << surveyCost;
+        ss << frequency << ";" << radius << ";" << removalCost << ";" << surveyCost <<";"<<thresholdseverity;
+       // cout<<thresholdseverity<<endl;
         return ss.str();
     }
 
@@ -143,7 +144,7 @@ public:
     string getName() { return "RectangularRogue"; }
     string getParams() { 
         stringstream ss;
-        ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost;
+        ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost<<";"<<thresholdseverity;
         return ss.str();
     }
 
