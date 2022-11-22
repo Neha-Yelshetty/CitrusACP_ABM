@@ -79,11 +79,14 @@ public:
     //Radius of surrounding trees removed
     int radius;
 
-    RogueTrees(double removalCost, double surveyCost, int frequency, int radius) {
+    double thresholdseverity;
+
+    RogueTrees(double removalCost, double surveyCost, int frequency, int radius,double thresholdseverity) {
         this->removalCost = removalCost;
         this->radius = radius;
         this->frequency = frequency;
         this->surveyCost = surveyCost;
+        this->thresholdseverity = thresholdseverity;
     }
 
     //Check trees to be rogued based on frequency parameter
@@ -116,13 +119,16 @@ public:
     double surveyCost;
     //Number of surveys per year
     int frequency; 
+    
+    double thresholdseverity;
 
-    RectangularRogue(double removalCost, double surveyCost, int frequency, int width, int height) {
+    RectangularRogue(double removalCost, double surveyCost, int frequency, int width, int height,double thresholdseverity) {
         this->removalCost = removalCost;
         this->width = width;
         this->height = height;
         this->frequency = frequency;
         this->surveyCost = surveyCost;
+        this->thresholdseverity = thresholdseverity;
     }
 
     //Check trees to be rogued based on frequency parameter

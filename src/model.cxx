@@ -116,13 +116,14 @@ void InitialiseCHMA(Commodity crop) {
             agents[i].behaviorPatterns.push_back(new RogueTrees(stod(sParams_agent[0]),
                                                                 stod(sParams_agent[1]),
                                                                 stod(sParams_agent[2]),
-                                                                stod(sParams_agent[3]))
+                                                                stod(sParams_agent[3]),
+                                                                stoi(sParams_agent[4]))
                                                 );
         }
         //Spraying
         if (stoi(sFlags_agent[1]) == 1) {
-            Behavior* spray = new SprayTrees(stod(sParams_agent[4]),
-                                             stod(sParams_agent[5]),
+            Behavior* spray = new SprayTrees(stod(sParams_agent[5]),
+                                             stod(sParams_agent[6]),
                                              bioABM::getSpringStart(),
                                              bioABM::getSummerStart(),
                                              bioABM::getFallStart());
@@ -133,19 +134,20 @@ void InitialiseCHMA(Commodity crop) {
         if (stoi(sFlags_agent[2]) == 1) {
              
             Behavior * dPlant = new DensePlanting(
-                stod(sParams_agent[6]),
-                stod(sParams_agent[7])
+                stod(sParams_agent[7]),
+                stod(sParams_agent[8])
             );
             agents[i].behaviorPatterns.push_back(dPlant);
         }
 
         if (stoi(sFlags_agent[3]) == 1) {
             Behavior * wideRogue = new RectangularRogue(
-                stod(sParams_agent[8]),
                 stod(sParams_agent[9]),
-                stoi(sParams_agent[10]),
+                stod(sParams_agent[10]),
                 stoi(sParams_agent[11]),
-                stoi(sParams_agent[12])
+                stoi(sParams_agent[12]),
+                stoi(sParams_agent[13]),
+                stoi(sParams_agent[14])
             );
              agents[i].behaviorPatterns.push_back(wideRogue);
         }

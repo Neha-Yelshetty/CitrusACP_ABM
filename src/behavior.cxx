@@ -30,7 +30,7 @@ void sprayGrove(int* ibounds, int* jbounds, double efficacy) {
  * (w/o replacement) symptomatic trees. Returns number of trees
  * removed
  * **************************************************************/
-int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
+int checkAndRogue(int* ibounds, int* jbounds, int width, int height,double thresholdseverity) {
     int removalCount = 0;
     boost::uniform_int<> gen(0,1);
     boost::random::mt19937 econ_rng(std::time(0));
@@ -39,7 +39,7 @@ int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
              // if(bioABM::isSymptomatic(i,j))
            //   cout<< bioABM::isSymptomatic(i,j) << "," << gen(econ_rng) << "," << bioABM::getSeverityAt(i,j) << endl;
-            if (bioABM::isSymptomatic(i,j) && 0.15 <= bioABM::getSeverityAt(i,j)) {
+            if (bioABM::isSymptomatic(i,j) && thresholdseverity <= bioABM::getSeverityAt(i,j)) {
                
                 //Rogue within a certain radius
                // cout<< "condition1" << endl;
@@ -85,13 +85,13 @@ void DensePlanting::executeAction(Grove *g) {
     this->PlanActions();
 }
 void RogueTrees::executeAction(Grove *g) {
-    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius);
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius,this->thresholdseverity);
     //cout<<numRemoved<<endl;
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
 void RectangularRogue::executeAction(Grove *g) {
-    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->width, this->height);
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->width, this->height,this->thresholdseverity);
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
