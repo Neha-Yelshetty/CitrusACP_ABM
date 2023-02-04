@@ -455,7 +455,7 @@ void Phase5() {
             //agents[i][j].costs += numCrops * agents[i][j].getCrop()->getVariableCost();
             //FC
             //agents[i][j].costs += agents[i][j].getFixedCosts();
-            agents[i].costs += (agents[i].getCrop()->costs) ; //36.5 * (10833) 
+            agents[i].costs += (agents[i].getCrop()->costs) * (10833) ; //36.05 * (10833) 
             
         }
 
