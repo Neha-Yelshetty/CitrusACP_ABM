@@ -252,7 +252,7 @@ double* Behavior::getExpectedValueTester(Grove g, double risk, int projectionLen
         if (t % 365 == 0) {
             ui_outcome -= g.getCrop()->costs;
             i_outcome -= g.getCrop()->costs;
-            costs += g.getCrop()->costs;
+            costs += g.getCrop()->costs ;
         }
     }
     EV = (risk * i_outcome) + ((1 - risk) * ui_outcome);

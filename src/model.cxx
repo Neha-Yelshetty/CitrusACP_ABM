@@ -443,7 +443,9 @@ void Phase4() {
 void Phase5() {
     int t = bioABM::getModelDay();
     int rel_t = t % 365;
+    
     for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) {
+        
         int* ibounds = agents[i].getIBounds();
         int* jbounds = agents[i].getJBounds();
         int numCrops = (ibounds[1] - ibounds[0]) * (jbounds[1] - jbounds[0]);
@@ -453,7 +455,8 @@ void Phase5() {
             //agents[i][j].costs += numCrops * agents[i][j].getCrop()->getVariableCost();
             //FC
             //agents[i][j].costs += agents[i][j].getFixedCosts();
-            agents[i].costs += agents[i].getCrop()->costs;
+            agents[i].costs += (agents[i].getCrop()->costs)* (10833) ;
+            
         }
 
         //Harvest
@@ -558,6 +561,7 @@ void writeCSVLine() {
         outputFile << bioABM::getModelDay() << ","; 
         outputFile << i << ",";
         outputFile << agents[i].costs << ",";
+        
         outputFile << agents[i].returns << ",";
         outputFile << (agents[i].returns - agents[i].costs) << ",";
         outputFile << meanSeverity << ",";
