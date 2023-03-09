@@ -156,7 +156,7 @@ void InitialiseCHMA(Commodity crop) {
         
     }
 
-    
+                          
     //Initial logging and planning
     for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) { 
         for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
@@ -544,6 +544,7 @@ void writeCSVLine() {
         double meanSeverity = getMeanHLB(agents[i]);
         stringstream strategyNames;
         stringstream strategyParams;
+        stringstream rougetreeremoved;
         if (agents[i].behaviorPatterns.empty()) {
             strategyNames << "NoAction";
             strategyParams << "NA";
@@ -552,9 +553,11 @@ void writeCSVLine() {
             for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
                 strategyNames << agents[i].behaviorPatterns[k]->getName();
                 strategyParams << agents[i].behaviorPatterns[k]->getParams();
+                rougetreeremoved << agents[i].behaviorPatterns[k]->getRougeTreeRemovalount();
                 if (k != agents[i].behaviorPatterns.size() - 1) {
                     strategyNames << "-";
                     strategyParams << "-";
+                    rougetreeremoved << "-";
                 }
             }
         }
@@ -568,7 +571,8 @@ void writeCSVLine() {
         outputFile << strategyNames.str() << ",";
         outputFile << strategyParams.str() << ",";
         outputFile << experimentID << ","; 
-        outputFile << getDeadTrees(agents[i]) << endl;
+        outputFile << rougetreeremoved.str() << endl; 
+       // outputFile << getDeadTrees(agents[i]) << endl;
     }
 }
 /*************************************************************
@@ -675,8 +679,10 @@ int main(int argc, char ** argv) {
     bioABM::setExperimentID(experimentID);
     outputFile.open(outputFilename);
     outputFile
-        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id" << endl;
+        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount" << endl;
+
     InitialiseCHMA(getCommodity());
+    
     runModel();
     
 

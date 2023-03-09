@@ -33,6 +33,8 @@ public:
     virtual string getName() = 0;
     virtual string getParams() = 0;
 
+    virtual int getRougeTreeRemovalount() = 0;
+
     bool actionPlannedOnDay(int day) {
         assert(day >= 0 && day < 365);
         return q[day];
@@ -65,6 +67,7 @@ public:
         ss << annualCosts << ";" << yieldMultiplier;
         return ss.str();
     }
+    int getRougeTreeRemovalount() {return 0;}
     
 };
 
@@ -80,6 +83,9 @@ public:
     int radius;
     //threshold cost
     double thresholdseverity;
+
+    //Trees removed while rougging
+    int rougetreeremoved = 0;
 
     RogueTrees(double removalCost, double surveyCost, int frequency, int radius,double thresholdseverity) {
         this->removalCost = removalCost;
@@ -99,6 +105,9 @@ public:
     //Unused and incorrect
     double getVariableCosts() { return this->removalCost; }
     string getName() { return "RogueTrees"; }
+
+    int getRougeTreeRemovalount() {return rougetreeremoved;}
+
     string getParams() { 
         stringstream ss;
         ss << frequency << ";" << radius << ";" << removalCost << ";" << surveyCost <<";"<<thresholdseverity;
@@ -147,7 +156,7 @@ public:
         ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost<<";"<<thresholdseverity;
         return ss.str();
     }
-
+   int getRougeTreeRemovalount() {return 0;}
 
 };
 
@@ -190,6 +199,7 @@ class SprayTrees: public Behavior {
         }
 
         void executeAction(Grove *g);
+        int getRougeTreeRemovalount() {return 0;}
 };
 
 

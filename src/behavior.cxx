@@ -87,6 +87,7 @@ void DensePlanting::executeAction(Grove *g) {
 void RogueTrees::executeAction(Grove *g) {
     int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius,this->thresholdseverity);
     //cout<<numRemoved<<endl;
+    this->rougetreeremoved = numRemoved;
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
