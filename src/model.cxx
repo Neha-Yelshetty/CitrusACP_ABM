@@ -6,6 +6,7 @@ using namespace std;
 #include "../headers/coord.hpp"
 #include "../headers/parameterSet.hpp"
 #include "../headers/bioABM.h"
+#include "../headers/sqlconnection.hpp"
 #include <boost/algorithm/string.hpp>
 #include <math.h>
 #include <algorithm>
@@ -39,7 +40,7 @@ string strategyFlags;
 string agencyFlags;
 int experimentID;
 
-
+sqlconnection sqlconn = sqlconnection();
 boost::random::mt19937 econ_rng(std::time(0));
 boost::random::uniform_01<> econ_gen;
 
@@ -682,9 +683,8 @@ int main(int argc, char ** argv) {
         << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount" << endl;
 
     InitialiseCHMA(getCommodity());
-    
     runModel();
-    
+    sqlconn.insertdataindatabase();
 
     return 0;
 }
