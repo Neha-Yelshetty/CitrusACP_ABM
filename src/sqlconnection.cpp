@@ -21,15 +21,15 @@ sqlconnection::sqlconnection() {
 }
 
 void sqlconnection ::insertdataindatabase() {
-  sql::Driver *driver;
+  sql::mysql::MySQL_Driver *driver;
   sql::Connection *con;
   sql::Statement *stmt;
   sql::ResultSet *res;
 
   try{
-    driver = get_driver_instance();
+    driver = get_mysql_driver_instance();
     cout<<"Before the call"<<endl;
-    con = driver->connect("tcp://172.20.25.35:3306","citrus_user","sacstate2023");
+    con = driver->connect("tcp://localhost:3306","citrus_user","sacstate2023");
     cout<<"Before the schema"<<endl;
     con->setSchema("Citrus");
     stmt = con->createStatement();
