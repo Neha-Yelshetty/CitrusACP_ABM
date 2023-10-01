@@ -27,7 +27,7 @@ void sqlconnection ::insertdataindatabase() {
   sql::ResultSet *res;
 
   try{
-    driver = get_mysql_driver_instance();
+    driver = sql::mysql::get_mysql_driver_instance();
     cout<<"Before the call"<<endl;
     con = driver->connect("tcp://localhost:3306","citrus_user","sacstate2023");
     cout<<"Before the schema"<<endl;
