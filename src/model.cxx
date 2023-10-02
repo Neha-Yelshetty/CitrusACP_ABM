@@ -6,7 +6,7 @@ using namespace std;
 #include "../headers/coord.hpp"
 #include "../headers/parameterSet.hpp"
 #include "../headers/bioABM.h"
-#include "../headers/sqlconnection.hpp"
+//#include "../headers/sqlconnection.hpp"
 #include <boost/algorithm/string.hpp>
 #include <math.h>
 #include <algorithm>
@@ -40,7 +40,7 @@ string strategyFlags;
 string agencyFlags;
 int experimentID;
 
-sqlconnection sqlconn = sqlconnection();
+//sqlconnection sqlconn = sqlconnection();
 boost::random::mt19937 econ_rng(std::time(0));
 boost::random::uniform_01<> econ_gen;
 
