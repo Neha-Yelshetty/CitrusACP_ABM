@@ -684,7 +684,7 @@ int main(int argc, char ** argv) {
 
     InitialiseCHMA(getCommodity());
     runModel();
-    sqlconn.insertdataindatabase();
+    //sqlconn.insertdataindatabase();
 
     return 0;
 }
