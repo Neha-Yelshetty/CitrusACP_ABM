@@ -2,6 +2,7 @@ import json
 import os
 from pickle import FALSE
 import psycopg2
+import mysql.connector
 import multiprocessing as mp
 import tqdm
 import random
@@ -86,17 +87,46 @@ def loadDataFile(cnx, path, tbl):
     cursor = cnx.cursor()
     cursor.execute(fQuery)
     cnx.commit()
+    db_config = {
+    "host": "localhost",
+    "user": "citrus_user",
+    "password": "sacstate2023",
+    "database": "Citrus",
+    }
+    try:
+    # Connect to the MySQL database
+    conn = mysql.connector.connect(**db_config)
 
-cnx_a = psycopg2.connect(host="localhost", user="citrus_user", password="sacstate2023", database="Citrus")
-cursor = cnx_a.cursor()
+    if conn.is_connected():
+        print("Connected to MySQL database")
 
-cluster_name = "TESTER"
+        # Perform database operations here
+        # For example:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tblprofitinformation")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
+
+    except mysql.connector.Error as e:
+        print(f"Error: {e}")
+    finally:
+        # Close the database connection
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+            print("MySQL connection is closed")
+
+#cnx_a = psycopg2.connect(host="localhost", user="citrus_user", password="sacstate2023", database="Citrus")
+#cursor = cnx_a.cursor()
+
+#cluster_name = "TESTER"
 #cluster_id = createCluster(cnx_a,cursor,cluster_name)
-add_experiment = ("INSERT INTO `Citrus`.`tblprofitinformation` (`time`, `hlbseverity`, `costs`, `returns`, `profit`, `roguetreecount`, `strategyname`, `strategyparameter`, `roguetreeremovalcost`, `roguesurveycost`, `roguefrequency`, `rogueradius`, `thresholdseverity`, `sprayefficacy`, `spraycost`, `denseannualcost`, `yieldmultiplier`, `recrogueremovalcost`, `recroguewidth`, `recrogueheight`, `recroguefrequency`, `recroguesurveycost`) VALUES ('4', '0', '0', '0', '0', '0', 'Spray', '0,6,7,8,9,0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');"
-)
-cursor.execute(add_experiment, experiment_data)
-cnx.commit()
-global_bioid = 1
+#add_experiment = ("INSERT INTO `Citrus`.`tblprofitinformation` (`time`, `hlbseverity`, `costs`, `returns`, `profit`, `roguetreecount`, `strategyname`, `strategyparameter`, `roguetreeremovalcost`, `roguesurveycost`, `roguefrequency`, `rogueradius`, `thresholdseverity`, `sprayefficacy`, `spraycost`, `denseannualcost`, `yieldmultiplier`, `recrogueremovalcost`, `recroguewidth`, `recrogueheight`, `recroguefrequency`, `recroguesurveycost`) VALUES ('4', '0', '0', '0', '0', '0', 'Spray', '0,6,7,8,9,0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');"
+#)
+#cursor.execute(add_experiment, experiment_data)
+#cnx.commit()
+#global_bioid = 1
 
 
 #Open default config file
