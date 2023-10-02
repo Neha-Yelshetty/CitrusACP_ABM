@@ -83,18 +83,23 @@ def createExperiment(cnx, cursor, paramList):
     return cursor.fetchone()[0]
 
 def loadDataFile(cnx, path, tbl):
-    fQuery = f"copy {tbl} FROM \'{path}\' DELIMITER \',\' csv header;"
-    cursor = cnx.cursor()
-    cursor.execute(fQuery)
-    cnx.commit()
+    #fQuery = f"copy {tbl} FROM \'{path}\' DELIMITER \',\' csv header;"
+    #cursor = cnx.cursor()
+    #cursor.execute(fQuery)
+    #cnx.commit()
+    db_config = {"host": "localhost","user": "citrus_user","password": "sacstate2023","database": "Citrus",}
+    
 
-db_config = {"host": "localhost","user": "citrus_user","password": "sacstate2023","database": "Citrus",}
-cnx_a = psycopg2.connect(host="localhost", user="postgres", password="CitrusABM21", database="netbenefits")
-cursor = cnx_a.cursor()
+#cnx_a = psycopg2.connect(host="localhost", user="citrus_user", password="sacstate2023", database="Citrus")
+#cursor = cnx_a.cursor()
 
-cluster_name = "TESTER"
-cluster_id = createCluster(cnx_a,cursor,cluster_name)
-global_bioid = 1
+#cluster_name = "TESTER"
+#cluster_id = createCluster(cnx_a,cursor,cluster_name)
+#add_experiment = ("INSERT INTO `Citrus`.`tblprofitinformation` (`time`, `hlbseverity`, `costs`, `returns`, `profit`, `roguetreecount`, `strategyname`, `strategyparameter`, `roguetreeremovalcost`, `roguesurveycost`, `roguefrequency`, `rogueradius`, `thresholdseverity`, `sprayefficacy`, `spraycost`, `denseannualcost`, `yieldmultiplier`, `recrogueremovalcost`, `recroguewidth`, `recrogueheight`, `recroguefrequency`, `recroguesurveycost`) VALUES ('4', '0', '0', '0', '0', '0', 'Spray', '0,6,7,8,9,0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0');"
+#)
+#cursor.execute(add_experiment, experiment_data)
+#cnx.commit()
+#global_bioid = 1
 
 
 #Open default config file
