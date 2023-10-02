@@ -88,12 +88,37 @@ def loadDataFile(cnx, path, tbl):
     cursor.execute(fQuery)
     cnx.commit()
 
-db_config = {"host": "localhost","user": "citrus_user","password": "sacstate2023","database": "Citrus",}
+
 cnx_a = psycopg2.connect(host="localhost", user="postgres", password="CitrusABM21", database="netbenefits")
 cursor = cnx_a.cursor()
 
+db_config = {"host": "localhost","user": "citrus_user","password": "sacstate2023","database": "Citrus",}
+try:
+    # Connect to the MySQL database
+    conn = mysql.connector.connect(**db_config)
+
+    if conn.is_connected():
+        print("Connected to MySQL database")
+
+        # Perform database operations here
+        # For example:
+        myscursor = conn.cursor()
+        myscursor.execute("SELECT * FROM tblprofitinformation")
+        rows = myscursor.fetchall()
+        for row in rows:
+            print(row)
+
+except mysql.connector.Error as e:
+    print(f"Error: {e}")
+finally:
+    # Close the database connection
+    if conn.is_connected():
+        myscursor.close()
+        conn.close()
+        print("MySQL connection is closed")
+        
 cluster_name = "TESTER"
-cluster_id = createCluster(cnx_a,cursor,cluster_name)
+#cluster_id = createCluster(cnx_a,cursor,cluster_name)
 global_bioid = 1
 
 
