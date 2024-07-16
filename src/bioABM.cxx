@@ -704,11 +704,12 @@ vector<coord> getGroveBounds(int identifier) {
 /*****************************************************************
 * rogueTreeAt
 ******************************************************************/
-void rogueTreeAt(int i, int j) {
+bool rogueTreeAt(int i, int j) {
     if (isValidCoordinate(coord(i,j))) {
         lattice[i][j].kill();
+        return true;
     }
-    return;
+    return false;
 }
 
 /****************************************************************
@@ -1100,6 +1101,7 @@ void birthNewFlush() {
             if (birthInfectChance > 0) {
                 for (int k = 0; k < flushEmerging; k++) {
                     if (doubleRand(0, 1) <= birthInfectChance) {
+                        
                         lattice[i][j].numInfectedShoots[0]++;
                     }
                     else {
