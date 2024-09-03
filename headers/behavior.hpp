@@ -33,6 +33,8 @@ public:
     virtual string getName() = 0;
     virtual string getParams() = 0;
 
+    virtual int getRougeTreeRemovalount() = 0;
+
     bool actionPlannedOnDay(int day) {
         assert(day >= 0 && day < 365);
         return q[day];
@@ -65,6 +67,7 @@ public:
         ss << annualCosts << ";" << yieldMultiplier;
         return ss.str();
     }
+    int getRougeTreeRemovalount() {return 0;}
     
 };
 
@@ -78,12 +81,18 @@ public:
     int frequency; 
     //Radius of surrounding trees removed
     int radius;
+    //threshold cost
+    double thresholdseverity;
 
-    RogueTrees(double removalCost, double surveyCost, int frequency, int radius) {
+    //Trees removed while rougging
+    int rougetreeremoved = 0;
+
+    RogueTrees(double removalCost, double surveyCost, int frequency, int radius,double thresholdseverity) {
         this->removalCost = removalCost;
         this->radius = radius;
         this->frequency = frequency;
         this->surveyCost = surveyCost;
+        this->thresholdseverity = thresholdseverity;
     }
 
     //Check trees to be rogued based on frequency parameter
@@ -96,9 +105,13 @@ public:
     //Unused and incorrect
     double getVariableCosts() { return this->removalCost; }
     string getName() { return "RogueTrees"; }
+
+    int getRougeTreeRemovalount() {return rougetreeremoved;}
+
     string getParams() { 
         stringstream ss;
-        ss << frequency << ";" << radius << ";" << removalCost << ";" << surveyCost;
+        ss << frequency << ";" << radius << ";" << removalCost << ";" << surveyCost <<";"<<thresholdseverity;
+       // cout<<thresholdseverity<<endl;
         return ss.str();
     }
 
@@ -116,13 +129,16 @@ public:
     double surveyCost;
     //Number of surveys per year
     int frequency; 
+    
+    double thresholdseverity;
 
-    RectangularRogue(double removalCost, double surveyCost, int frequency, int width, int height) {
+    RectangularRogue(double removalCost, double surveyCost, int frequency, int width, int height,double thresholdseverity) {
         this->removalCost = removalCost;
         this->width = width;
         this->height = height;
         this->frequency = frequency;
         this->surveyCost = surveyCost;
+        this->thresholdseverity = thresholdseverity;
     }
 
     //Check trees to be rogued based on frequency parameter
@@ -137,10 +153,10 @@ public:
     string getName() { return "RectangularRogue"; }
     string getParams() { 
         stringstream ss;
-        ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost;
+        ss << frequency << ";" << width << ";" << height << ";" << removalCost << ";" << surveyCost<<";"<<thresholdseverity;
         return ss.str();
     }
-
+   int getRougeTreeRemovalount() {return 0;}
 
 };
 
@@ -183,6 +199,7 @@ class SprayTrees: public Behavior {
         }
 
         void executeAction(Grove *g);
+        int getRougeTreeRemovalount() {return 0;}
 };
 
 

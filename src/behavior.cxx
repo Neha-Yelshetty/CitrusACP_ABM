@@ -30,25 +30,37 @@ void sprayGrove(int* ibounds, int* jbounds, double efficacy) {
  * (w/o replacement) symptomatic trees. Returns number of trees
  * removed
  * **************************************************************/
-int checkAndRogue(int* ibounds, int* jbounds, int width, int height) {
+int checkAndRogue(int* ibounds, int* jbounds, int width, int height,double thresholdseverity) {
     int removalCount = 0;
     boost::uniform_int<> gen(0,1);
     boost::random::mt19937 econ_rng(std::time(0));
+     //cout<< gen(econ_rng)  << econ_rng << endl;
     for (int i = ibounds[0]; i < ibounds[1]; i++) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
-            if (bioABM::isSymptomatic(i,j) && gen(econ_rng) <= bioABM::getSeverityAt(i,j)) {
+             // if(bioABM::isSymptomatic(i,j))
+              
+            if (bioABM::isSymptomatic(i,j) && thresholdseverity <= bioABM::getSeverityAt(i,j)) {
+               //cout<< bioABM::getModelDay() << "--" << bioABM::getSeverityAt(i,j) << endl;
                 //Rogue within a certain radius
+               // cout<< "condition1" << endl;
                 for (int k = -height; k <= height; k++) {
                     for (int l = -width; l <= width; l++) {
                         if (bioABM::isTreeAlive(i+k,j+l)) {
-                            bioABM::rogueTreeAt(i+k,j+l);
-                            removalCount++;
+                           // cout<< "condition2" << endl;
+                            if(bioABM::rogueTreeAt(i+k,j+l))
+                                removalCount++;
                         }
                     }
                 }
             }
         }
     }
+
+  /*  if(removalCount > 0)
+    {
+        cout << bioABM::getModelDay() << "---" << removalCount <<endl;
+    }*/
+    
     return removalCount;
 }
 
@@ -73,12 +85,15 @@ void DensePlanting::executeAction(Grove *g) {
     this->PlanActions();
 }
 void RogueTrees::executeAction(Grove *g) {
-    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius);
+    //cout<<"roguetree"<<endl;
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->radius, this->radius,this->thresholdseverity);
+    //cout<<numRemoved<<endl;
+    this->rougetreeremoved += numRemoved;
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
 void RectangularRogue::executeAction(Grove *g) {
-    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->width, this->height);
+    int numRemoved = checkAndRogue(g->getIBounds(), g->getJBounds(), this->width, this->height,this->thresholdseverity);
     g->costs += this->surveyCost;
     g->costs += numRemoved * this->removalCost;
 }
@@ -91,10 +106,13 @@ void RogueTrees::PlanActions() {
         q[i] = false;
     }
     //Check once at start of year, and every frequency days after
-    int daysPerSurvey = 365 / this->frequency;
+    int daysPerSurvey = this->frequency;
     for (int i = 0; i < 365; i += daysPerSurvey) {
         q[i] = true;
     }
+
+
+
 }
 
 void RectangularRogue::PlanActions() {
@@ -106,10 +124,15 @@ void RectangularRogue::PlanActions() {
     int daysPerSurvey = 365 / this->frequency;
     for (int i = 0; i < 365; i += daysPerSurvey) {
         q[i] = true;
+        
     }
+  
+    
 }
 
 void SprayTrees::executeAction(Grove *g) {
+
+    //cout<<"SprayTrees"<<endl;
     sprayGrove(g->getIBounds(), g->getJBounds(), this->efficacy);
     g->costs += this->sprayCost;
 }
@@ -148,7 +171,7 @@ void SprayTrees::PlanActions() {
     int harvest3spray2day = this->start3 + target2;
     q[harvest3spray1day] = true;
     q[harvest3spray2day] = true;
-
+ 
 }
 
 /*********************************************************
@@ -239,7 +262,7 @@ double* Behavior::getExpectedValueTester(Grove g, double risk, int projectionLen
         if (t % 365 == 0) {
             ui_outcome -= g.getCrop()->costs;
             i_outcome -= g.getCrop()->costs;
-            costs += g.getCrop()->costs;
+            costs += g.getCrop()->costs ;
         }
     }
     EV = (risk * i_outcome) + ((1 - risk) * ui_outcome);

@@ -6,6 +6,7 @@ using namespace std;
 #include "../headers/coord.hpp"
 #include "../headers/parameterSet.hpp"
 #include "../headers/bioABM.h"
+//#include "../headers/sqlconnection.hpp"
 #include <boost/algorithm/string.hpp>
 #include <math.h>
 #include <algorithm>
@@ -39,7 +40,7 @@ string strategyFlags;
 string agencyFlags;
 int experimentID;
 
-
+//sqlconnection sqlconn = sqlconnection();
 boost::random::mt19937 econ_rng(std::time(0));
 boost::random::uniform_01<> econ_gen;
 
@@ -116,13 +117,16 @@ void InitialiseCHMA(Commodity crop) {
             agents[i].behaviorPatterns.push_back(new RogueTrees(stod(sParams_agent[0]),
                                                                 stod(sParams_agent[1]),
                                                                 stod(sParams_agent[2]),
-                                                                stod(sParams_agent[3]))
+                                                                stod(sParams_agent[3]),
+                                                                stod(sParams_agent[4]))
                                                 );
         }
+
+             
         //Spraying
         if (stoi(sFlags_agent[1]) == 1) {
-            Behavior* spray = new SprayTrees(stod(sParams_agent[4]),
-                                             stod(sParams_agent[5]),
+            Behavior* spray = new SprayTrees(stod(sParams_agent[5]),
+                                             stod(sParams_agent[6]),
                                              bioABM::getSpringStart(),
                                              bioABM::getSummerStart(),
                                              bioABM::getFallStart());
@@ -133,25 +137,27 @@ void InitialiseCHMA(Commodity crop) {
         if (stoi(sFlags_agent[2]) == 1) {
              
             Behavior * dPlant = new DensePlanting(
-                stod(sParams_agent[6]),
-                stod(sParams_agent[7])
+                stod(sParams_agent[7]),
+                stod(sParams_agent[8])
             );
             agents[i].behaviorPatterns.push_back(dPlant);
         }
+
         if (stoi(sFlags_agent[3]) == 1) {
-            
             Behavior * wideRogue = new RectangularRogue(
-                stod(sParams_agent[8]),
                 stod(sParams_agent[9]),
-                stoi(sParams_agent[10]),
+                stod(sParams_agent[10]),
                 stoi(sParams_agent[11]),
-                stoi(sParams_agent[12])
+                stoi(sParams_agent[12]),
+                stoi(sParams_agent[13]),
+                stod(sParams_agent[14])
             );
+             agents[i].behaviorPatterns.push_back(wideRogue);
         }
         
     }
 
-    
+                          
     //Initial logging and planning
     for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) { 
         for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
@@ -438,7 +444,9 @@ void Phase4() {
 void Phase5() {
     int t = bioABM::getModelDay();
     int rel_t = t % 365;
+    
     for (int i = 0; i < ParameterSet::gridLength * ParameterSet::gridWidth; i++) {
+        
         int* ibounds = agents[i].getIBounds();
         int* jbounds = agents[i].getJBounds();
         int numCrops = (ibounds[1] - ibounds[0]) * (jbounds[1] - jbounds[0]);
@@ -448,7 +456,8 @@ void Phase5() {
             //agents[i][j].costs += numCrops * agents[i][j].getCrop()->getVariableCost();
             //FC
             //agents[i][j].costs += agents[i][j].getFixedCosts();
-            agents[i].costs += agents[i].getCrop()->costs;
+            agents[i].costs += (agents[i].getCrop()->costs) * (10833) ; //36.05 * (10833) 
+            
         }
 
         //Harvest
@@ -536,6 +545,7 @@ void writeCSVLine() {
         double meanSeverity = getMeanHLB(agents[i]);
         stringstream strategyNames;
         stringstream strategyParams;
+        stringstream rougetreeremoved;
         if (agents[i].behaviorPatterns.empty()) {
             strategyNames << "NoAction";
             strategyParams << "NA";
@@ -544,22 +554,26 @@ void writeCSVLine() {
             for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
                 strategyNames << agents[i].behaviorPatterns[k]->getName();
                 strategyParams << agents[i].behaviorPatterns[k]->getParams();
+                rougetreeremoved << agents[i].behaviorPatterns[k]->getRougeTreeRemovalount();
                 if (k != agents[i].behaviorPatterns.size() - 1) {
                     strategyNames << "-";
                     strategyParams << "-";
+                    rougetreeremoved << "-";
                 }
             }
         }
         outputFile << bioABM::getModelDay() << ","; 
         outputFile << i << ",";
         outputFile << agents[i].costs << ",";
+        
         outputFile << agents[i].returns << ",";
         outputFile << (agents[i].returns - agents[i].costs) << ",";
         outputFile << meanSeverity << ",";
         outputFile << strategyNames.str() << ",";
         outputFile << strategyParams.str() << ",";
         outputFile << experimentID << ","; 
-        outputFile << getDeadTrees(agents[i]) << endl;
+        outputFile << rougetreeremoved.str() << endl; 
+       // outputFile << getDeadTrees(agents[i]) << endl;
     }
 }
 /*************************************************************
@@ -666,10 +680,11 @@ int main(int argc, char ** argv) {
     bioABM::setExperimentID(experimentID);
     outputFile.open(outputFilename);
     outputFile
-        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id" << endl;
+        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount" << endl;
+
     InitialiseCHMA(getCommodity());
     runModel();
-    
+    //sqlconn.insertdataindatabase();
 
     return 0;
 }
