@@ -59,8 +59,7 @@ def createSet(cnx, cursor, description, clusterid):
 ## CREATE EXPERIMENT
 add_experiment = ("INSERT INTO experiments VALUES"
                   "(DEFAULT,"
-                  "%(fresh_yield)s, %(juice_yield)s, %(fruit_price)s, %(juice_price)s, %(fixed_costs)s, %(bio_param_id)s, %(set_id)s,"
-                  "%(invasionDays)s, %(invasionModalities)s)"
+                  "%(fresh_yield)s, %(juice_yield)s, %(fruit_price)s, %(juice_price)s, %(fixed_costs)s, %(bio_param_id)s, %(set_id)s)"
                   "RETURNING experiment_id;"
 )
 
@@ -77,6 +76,7 @@ def createExperiment(cnx, cursor, paramList):
         'invasionDays': paramList['invasionDays'],
         'invasionModalities': paramList['invasionModalities']
     }
+    
     cursor.execute(add_experiment, experiment_data)
     cnx.commit()
     return cursor.fetchone()[0]
@@ -106,14 +106,14 @@ import datetime
 import copy 
 configList = []
 numYears = math.floor(config_file["modelDuration"] / 365)
-for numInvasions in ["initial","half","all","double"]:
-    for _ in range(0,50):
+for numInvasions in ["initial"]:  #,"half","all","double"
+    for x in range(0,1):
         filePrefix = f'{datetime.datetime.now()}'.replace(' ', '-').replace(':','.')
         config = json.loads(json.dumps(config_file))
         invasionDays = ""
         invasionDays_lst = []
         if numInvasions == "initial":
-            invasionDays_lst = ["81"]
+            invasionDays_lst = ["81"] #,446,811,1176,1541,1906,2271,2636,3001,3366,3731,4096,4461,4826,5191,5556,5921,6286,6651,7016
         elif numInvasions == "half":
             invasionDays_lst = [str((x)*365 + 81) for x in range(0,numYears) if ((x) % 2 == 0 or (x)==0)]
         elif numInvasions == "all":
@@ -123,15 +123,17 @@ for numInvasions in ["initial","half","all","double"]:
         config["invasionDays"] = ','.join([x for x in invasionDays_lst])
         invasionModality_lst = random.choices(range(1,7),k=len(invasionDays_lst))
         invasionModalities = ','.join([str(x) for x in invasionModality_lst])
-        config["invasionModalities"] = invasionModalities
+        #config["invasionModalities"] =  invasionModalities
+        #print(invasionModalities)
         config["fileName"] = f'{filePrefix}_bio.csv'
+        #print(config["fileName"])
         configList.append(config)
+        print("Hello : {}".format(invasionModalities))
 
 
 econConfig = None 
 with open("configs/econConfig.json", "r") as read_file:
     econConfig = json.load(read_file)
-
 
 
 
@@ -155,13 +157,18 @@ def getExperimentID(cnx, setid, econConfig, bioConfig, bioid):
     cnx.commit()
     return eID
 
+
 setid_dict = {}
-def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffix=""):
+def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffix="",noofiteration = -1):
     if numSets==0:
         rndBio = random.randint(0, len(biocons)-1)
         bio_copy = copy.deepcopy(biocons[rndBio])
         econ_copy = copy.deepcopy(econ) 
         rndmid = id_generator()
+        if noofiteration != -1:
+            rndmid = noofiteration
+        elif len(nameSuffix) == 0:
+            rndmid = nameSuffix + rndmid
         econ_copy["outputFilename"] = f"{rndmid}_econ.csv"
         bio_copy["fileName"] = econ_copy["outputFilename"].replace("econ", "bio")
         master.append([econ_copy, bio_copy, folder])
@@ -174,6 +181,10 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
                 econ_copy = copy.deepcopy(econ)
                 bio_copy = copy.deepcopy(bio)
                 rndmid = id_generator()
+                if noofiteration != -1:
+                    rndmid = noofiteration
+                elif len(nameSuffix) == 0:
+                  rndmid = nameSuffix + rndmid
                 bio_copy["fileName"] = f"{rndmid}_bio.csv"
                 econ_copy["outputFilename"] = bio_copy["fileName"].replace("bio", "econ")
                 master.append([econ_copy, bio_copy, folder])
@@ -206,107 +217,174 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
 
 #PARAMTER FORMAT: removalCost, surveyCost, frequency, radius, efficacy, spraycost, denseCosts, 
 #                 yield multiplier, removalcost, surveycost, frequency, width, height
-#FIRST NEW TEST
-# for e in [600,700,800,900]:
-#     econ_copy = copy.deepcopy(econConfig)
-#     econ_copy["strategyFlags"] = "0,1,0"
-#     econ_copy["strategyParameters"] = f"5,5,0,0,{e/1000},5,5,0"
-#     appendMasterTriples(cnx_a, econ_copy, configList, f"sprayVariations",  masterConfigList, numSets=1)
+#SPRAY TEST
+for x in range(0,10):
+    for e in [700,800,900]: #600,
+        econ_copy = copy.deepcopy(econConfig)
+        econ_copy["strategyFlags"] = "-1,1,0,0"
+        econ_copy["strategyParameters"] = f"5,5,0,0,0.1,{e/1000},0.246,5,0"
+        econ_copy["noactionread_file_no"] = x
+        appendMasterTriples(cnx_a, econ_copy, configList, f"sprayVariations",  masterConfigList, numSets=1)
 # # # #ROGUE TEST
-# for radius in [20,40,60]:
-#     for frequency in [1,6,12,18,24]:
-#         econ_copy = copy.deepcopy(econConfig)
-#         econ_copy["strategyFlags"] = "1,0,0"
-#         econ_copy["strategyParameters"] = f"5,5,{frequency},{radius},0,5,5,0"
-#         appendMasterTriples(cnx_a, econ_copy, configList, f"rogueVariations", masterConfigList, numSets=1)
+#for x in range(0,100):
+#	for radius in [0]: #20,40,60
+#		for frequency in [45,70,105,135]: #1,6,12,18,24
+#			for cost in [0]: #3,6,9
+#				for thershold in [0.1,0.2,0.3,0.4]:
+#					econ_copy = copy.deepcopy(econConfig)
+#					econ_copy["strategyFlags"] = "1,0,0,0"
+#					econ_copy["strategyParameters"] = f"{cost},0.25,{frequency},{radius},{thershold},0,5,5,0"
+#                   econ_copy["noactionread_file_no"] = x
+#					appendMasterTriples(cnx_a, econ_copy, configList, f"rogueVariations", masterConfigList, numSets=1)
 # # # # #SPRAY AND ROGUE
-# for e in [600,700,800,900]:
-#     for frequency in [1,6,12,18,24]:
-#         for radius in [1,8,10,20,40]:
-#             econ_copy = copy.deepcopy(econConfig)
-#             econ_copy["strategyFlags"] = "1,1,0"
-#             econ_copy["strategyParameters"] = f"5,5,{frequency},{radius},{e/1000},5,5,0"
-#             appendMasterTriples(cnx_a, econ_copy, configList, f"rogueSprayVariations", masterConfigList, numSets=1)
+#for x in range(0,100):
+#	for e in [600,700,800,900]:
+#		for frequency in [45,70,105,135]: #1,6,12,18,24
+#			for radius in [0]: #1,8,10,20,40
+#				for cost in [0]: #3,6,9
+#					for thershold in [0.1,0.2,0.3,0.4]:
+#						econ_copy = copy.deepcopy(econConfig)
+#						econ_copy["strategyFlags"] = "1,1,0,0"
+#						econ_copy["strategyParameters"] = f"{cost},0.25,{frequency},{radius},{thershold},{e/1000},0.246,5,0"
+#                       econ_copy["noactionread_file_no"] = x
+#						appendMasterTriples(cnx_a, econ_copy, configList, f"rogueSprayVariations", masterConfigList, numSets=1)
+
 
 # RECTANGULAR ROGUE
-for frequency in [1,6,18]:
-    for width in [1,8,20,40]:
-        for height in [1,8,20,40]:
-            if width == height:
-                continue
-            econ_copy = copy.deepcopy(econConfig)
-            econ_copy["strategyFlags"] = "0,0,0,1"
-            econ_copy["strategyParameters"] = f"0,0,0,0,0,0,0,0,5,0,{frequency},{width},{height}"
-            appendMasterTriples(cnx_a, econ_copy, configList, f"recRogueVariations", masterConfigList, numSets=1)
+#for frequency in [1,6,18]:
+#   for width in [1,8,20,40]:
+#        for height in [1,8,20,40]:
+#            if width != height:
+#                continue
+#            econ_copy = copy.deepcopy(econConfig)
+#            econ_copy["strategyFlags"] = "0,0,0,1"
+#            econ_copy["strategyParameters"] = f"0,0,0,0,0.1,0,0,0,0,5,0,{frequency},{width},{height},0.1"
+#            econ_copy["noactionread_file_no"] = x
+#            appendMasterTriples(cnx_a, econ_copy, configList, f"rectangleRogueVariations", masterConfigList, numSets=1)
 
 # RECTANGULAR ROGUE AND SPRAY
-for e in [600,700,800,900]:
-    for frequency in [1,6,18]:
-        for width in [1,8,20,40]:
-            for height in [1,8,20,40]:
-                if width == height:
-                    continue
-                econ_copy = copy.deepcopy(econConfig)
-                econ_copy["strategyFlags"] = "0,1,0,1"
-                econ_copy["strategyParameters"] = f"0,0,0,0,{e/1000},0,0,0,5,0,{frequency},{width},{height}"
-                appendMasterTriples(cnx_a, econ_copy, configList, f"recRogueSprayVariations", masterConfigList, numSets=1)
+#for e in [600,700,800,900]:
+#    for frequency in [1,6,18]:
+#        for width in [1,8,20,40]:
+#            for height in [1,8,20,40]:
+#                if width == height:
+#                    continue
+#                econ_copy = copy.deepcopy(econConfig)
+#                econ_copy["strategyFlags"] = "0,1,0,1"
+#                econ_copy["strategyParameters"] = f"0,0,0,0,0,{e/1000},0,0,0,5,0,{frequency},{width},{height},0.1"
+#                econ_copy["noactionread_file_no"] = x
+#                appendMasterTriples(cnx_a, econ_copy, configList, f"recRogueSprayVariations", masterConfigList, numSets=1)
 
-# # # # DENSE PLANTING
-# for density in [20,80,140,200,220]:
-#     econ_copy = copy.deepcopy(econConfig)
-#     ym = 0.5182*(density/100) + 0.0761
-#     econ_copy["strategyFlags"] = "0,0,1"
-#     econ_copy["strategyParameters"] = f"5,5,0,0,0,5,5,{ym}"
-#     appendMasterTriples(cnx_a, econ_copy, configList, "densePlantingVariations", masterConfigList, numSets=1)
+## # # # DENSE PLANTING
+#for density in [20,80,140,200,220]:
+#       econ_copy = copy.deepcopy(econConfig)
+#       ym = 0.5182*(density/100) + 0.0761
+#       if density == 20: 
+#           cost = 4.89
+#       elif density == 80:
+#           cost = 19.57
+#       elif density == 140:
+#           cost = 34.25
+#       elif density == 200:
+#           cost = 48.93
+#       elif density == 220:
+#           cost = 53.82
+#       else:
+#           cost = 4.89
+#       econ_copy["strategyFlags"] = "0,0,1,0"
+#       econ_copy["strategyParameters"] = f"5,5,0,0,0.1,0,5,{cost},{ym}"
+#       econ_copy["noactionread_file_no"] = x
+#       appendMasterTriples(cnx_a, econ_copy, configList, "densePlantingVariations", masterConfigList, numSets=1)
 
-# # # # DENSE PLANTING AND ROGUE
-# for density in [20,80,140,200,220]:
-#     for frequency in [1,6,12,18,24]:
+# # # # DENSE PLANTING AND ROGU
+#for density in [20,80,140,200,220]:
+#    for frequency in [1,6,12,18,24]:
 #         econ_copy = copy.deepcopy(econConfig)
 #         ym = 0.5182*(density/100) + 0.0761
-#         econ_copy["strategyFlags"] = "0,0,1"
-#         econ_copy["strategyParameters"] = f"5,5,{frequency},0,0,5,5,{ym}"
+#         if density == 20: 
+#            cost = 4.89
+#         elif density == 80:
+#            cost = 19.57
+#         elif density == 140:
+#            cost = 34.25
+#         elif density == 200:
+#            cost = 48.93
+#         elif density == 220:
+#            cost = 53.82
+#         else:
+#            cost = 4.89
+#         econ_copy["strategyFlags"] = "0,0,1,0"
+#         econ_copy["strategyParameters"] = f"5,5,{frequency},0,0,0,5,{cost},{ym}"
+#         econ_copy["noactionread_file_no"] = x
 #         appendMasterTriples(cnx_a, econ_copy, configList, "densePlantingVariations", masterConfigList, numSets=1)
 
 
 # # # # DENSE PLANTING AND SPRAY
-# for e in [600,700,800,900]:
+#for e in [600,700,800,900]:
 #     for density in [20,80,140,200,220]:
 #         econ_copy = copy.deepcopy(econConfig)
 #         ym = 0.5182*(density/100) + 0.0761
-#         econ_copy["strategyFlags"] = "0,1,1"
-#         econ_copy["strategyParameters"] = f"5,5,0,0,{e/1000},5,5,{ym}"
+#         if density == 20:
+#            cost = 4.89
+#         elif density == 80:
+#            cost = 19.57
+#         elif density == 140:
+#            cost = 34.25
+#         elif density == 200:
+#            cost = 48.93
+#         elif density == 220:
+#            cost = 53.82
+#         else:
+#            cost = 4.89
+#         econ_copy["strategyFlags"] = "0,1,1,0"
+#         econ_copy["strategyParameters"] = f"5,5,0,0,0.1,{e/1000},5,{cost},{ym}"
+#         econ_copy["noactionread_file_no"] = x
 #         appendMasterTriples(cnx_a, econ_copy, configList, "denseAndSprayVariations", masterConfigList, numSets=1)
 
 # # # DENSE PLANTING AND SPRAY AND ROGUE
-# for density in [20,80,140,200,220]:
-#     for e in [600,700,800,900]:
+#for density in [20,80,140,200,220]:
+#    for e in [600,700,800,900]:
 #         for frequency in [1,6,12,18,24]:
 #                 econ_copy = copy.deepcopy(econConfig)
 #                 ym = 0.5182*(density/100) + 0.0761
-#                 econ_copy["strategyFlags"] = "1,1,1"
-#                 econ_copy["strategyParameters"] = f"5,5,{frequency},0,{e/1000},5,5,{ym}"
+#                 if density == 20:
+#                    cost = 4.89
+#                 elif density == 80:
+#                    cost = 19.57
+#                 elif density == 140:
+#                    cost = 34.25
+#                 elif density == 200:
+#                    cost = 48.93
+#                 elif density == 220:
+#                    cost = 53.82
+#                 else:
+#                    cost = 4.89
+#                 econ_copy["strategyFlags"] = "1,1,1,0"
+#                 econ_copy["strategyParameters"] = f"5,5,{frequency},0,0,{e/1000},5,{cost},{ym}"
+#                 #print(f"5,5,{frequency},0,{e/1000},5,{cost},{ym}")
 #                 appendMasterTriples(cnx_a, econ_copy, configList, f"denseRogueSprayVariations", masterConfigList, numSets=1)
 # #NO ACTION BASELINE
-# econ_copy = copy.deepcopy(econConfig)
-# econ_copy["strategyFlags"] = "0,0,0"
-# econ_copy["strategyParameters"] = f"0,0,0,0,0,0,0,0"
-# appendMasterTriples(cnx_a, econ_copy, configList, f"noAction_baseCase",  masterConfigList, numSets=10)
+for x in range(0,10):
+    econ_copy = copy.deepcopy(econConfig)
+    econ_copy["strategyFlags"] = "0,0,0,0"
+    econ_copy["strategyParameters"] = f"0,0,0,0,0,0,0,0"
+    econ_copy["noactionread_file_no"] = x
+    appendMasterTriples(cnx_a, econ_copy, configList, f"noAction_baseCase",  masterConfigList, numSets=1,noofiteration = x)
 
 def runInstance(config):
     biofileName = config[1]["fileName"][:-4]
     econFileName = config[0]["outputFilename"][:-4]
     os.makedirs(f'configs/{cluster_name}/{config[2]}', exist_ok=True)
     os.makedirs(f'output/{cluster_name}/{config[2]}', exist_ok=True)
-    expid = config[3]
     config[0]["outputFilename"] = f"output/{cluster_name}/{config[2]}/{econFileName}.csv"
     config[1]["fileName"] = f"output/{cluster_name}/{config[2]}/{biofileName}.csv"
     config[0]["experimentID"] = expid
     with open(f"configs/{cluster_name}/{config[2]}/{biofileName}.json", "w") as write_file:
         json.dump(config[1], write_file)
     with open(f"configs/{cluster_name}/{config[2]}/{econFileName}.json", "w") as write_file:
-        json.dump(config[0], write_file)   
+        json.dump(config[0], write_file) 
     os.system(f"./serial.out \"configs/{cluster_name}/{config[2]}/{econFileName}.json\" \"configs/{cluster_name}/{config[2]}/{biofileName}.json\"")
+
 
 
 revisedMaster = []
@@ -317,28 +395,23 @@ for config in masterConfigList:
     revisedMaster.append(newConfig)
 
 
-
 pool = mp.Pool(mp.cpu_count())
 
 for _ in tqdm.tqdm(pool.imap_unordered(runInstance, revisedMaster), total=len(revisedMaster)):
     pass 
-
 pool.close()
 
-basePath = f"/home/instr1/repo/EconABM_accounting/EconABM/output/{cluster_name}"
+#cur = cnx_a.cursor()
+
+basePath = f"/home/instr1/repo/test/output/{cluster_name}"
 print("Starting data loading...")
 for config in tqdm.tqdm(revisedMaster):
     filename = f"{basePath}/{config[2]}/{config[0]['outputFilename']}"
+    
     loadDataFile(cnx_a, filename, "econ")
     os.remove(filename)
     #biofilename = f"{basePath}/{config[2]}/{config[1]['fileName']}"
     #loadDataFile(cnx_a, biofilename, "bio")
     #os.remove(biofilename)
 
-
-
-
 cnx_a.close()
-
-
-

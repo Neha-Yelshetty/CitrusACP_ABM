@@ -6,6 +6,7 @@ using namespace std;
 #include "../headers/coord.hpp"
 #include "../headers/parameterSet.hpp"
 #include "../headers/bioABM.h"
+#include "../headers/previousyearprofitdata.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <math.h>
@@ -39,6 +40,10 @@ string strategyParameters;
 string strategyFlags; 
 string agencyFlags;
 int experimentID;
+previousyearprofitdata prevdata = previousyearprofitdata();
+previousyearprofitdata pdata[7400];
+int isNoactionstratergytype = true;
+int noactionread_file_no =1;
 
 
 boost::random::mt19937 econ_rng(std::time(0));
@@ -114,6 +119,7 @@ void InitialiseCHMA(Commodity crop) {
        
         //Rogue trees
         if (stoi(sFlags_agent[0]) == 1) {
+            isNoactionstratergytype = false;
             agents[i].behaviorPatterns.push_back(new RogueTrees(stod(sParams_agent[0]),
                                                                 stod(sParams_agent[1]),
                                                                 stod(sParams_agent[2]),
@@ -125,6 +131,7 @@ void InitialiseCHMA(Commodity crop) {
              
         //Spraying
         if (stoi(sFlags_agent[1]) == 1) {
+            isNoactionstratergytype = false;
             Behavior* spray = new SprayTrees(stod(sParams_agent[5]),
                                              stod(sParams_agent[6]),
                                              bioABM::getSpringStart(),
@@ -135,7 +142,7 @@ void InitialiseCHMA(Commodity crop) {
                     
         //Denser planting
         if (stoi(sFlags_agent[2]) == 1) {
-             
+            isNoactionstratergytype = false;
             Behavior * dPlant = new DensePlanting(
                 stod(sParams_agent[7]),
                 stod(sParams_agent[8])
@@ -144,6 +151,7 @@ void InitialiseCHMA(Commodity crop) {
         }
 
         if (stoi(sFlags_agent[3]) == 1) {
+            isNoactionstratergytype = false;
             Behavior * wideRogue = new RectangularRogue(
                 stod(sParams_agent[9]),
                 stod(sParams_agent[10]),
@@ -190,6 +198,7 @@ void Phase2() {
         for (int k = 0; k < agents[i].behaviorPatterns.size(); k++) {
             if (agents[i].behaviorPatterns[k]->actionPlannedOnDay(relativePeriod)) {
                 agents[i].behaviorPatterns[k]->executeAction(&agents[i]);
+               
             }
               
         }
@@ -572,7 +581,21 @@ void writeCSVLine() {
         outputFile << strategyNames.str() << ",";
         outputFile << strategyParams.str() << ",";
         outputFile << experimentID << ","; 
-        outputFile << rougetreeremoved.str() << endl; 
+        outputFile << rougetreeremoved.str() << ",";
+
+        auto [discreteprobability_doublerand, psylliddistribution_infected_doublerand, psylliddistribution_female_doublerand, modality1_infected_doublerand, modality1_female_doublerand,
+        modality3_infected_doublerand,modality3_female_doublerand,modality5_infected_doublerand,modality5_female_doublerand,birtnewflush_doublerand] = bioABM::returndoublerandvalues();
+
+        outputFile << discreteprobability_doublerand << ","; 
+        outputFile << psylliddistribution_infected_doublerand << ","; 
+        outputFile << psylliddistribution_female_doublerand << ","; 
+        outputFile << modality1_infected_doublerand << ","; 
+        outputFile << modality1_female_doublerand << ","; 
+        outputFile << modality3_infected_doublerand << ","; 
+        outputFile << modality3_female_doublerand << ","; 
+        outputFile << modality5_infected_doublerand << ","; 
+        outputFile << modality5_infected_doublerand << ","; 
+        outputFile << birtnewflush_doublerand << endl; 
        // outputFile << getDeadTrees(agents[i]) << endl;
     }
 }
@@ -583,6 +606,8 @@ void writeCSVLine() {
 **************************************************************/
 void runModel() {
     while (bioABM::getModelDay() <= bioABM::getModelDuration()) {
+
+        bioABM::fix_randomvalue_forday(isNoactionstratergytype,pdata);
         // Stage 1: Psyllid Growth and Movement
         Phase1();
         //cout << "Period " << bioABM::getModelDay() << endl;
@@ -602,6 +627,7 @@ void runModel() {
             //Stage 5: Accounting
             Phase5();
             writeCSVLine();
+
         }
     }
     outputFile.close();
@@ -618,7 +644,7 @@ void parseParameterFile(string fileName) {
         cereal::JSONInputArchive archive(is);
         archive(ParameterSet::planningLength, ParameterSet::freshYield, ParameterSet::juiceYield,
             ParameterSet::freshPrice, ParameterSet::juicePrice, ParameterSet::costs, ParameterSet::biologicalRun,
-            ParameterSet::projectionLength, outputFilename, harvestDays, strategyParameters, strategyFlags, agencyFlags, experimentID);
+            ParameterSet::projectionLength, outputFilename, harvestDays, strategyParameters, strategyFlags, agencyFlags, experimentID,noactionread_file_no);
     }
     catch (exception e) {
         cout << "ERROR WITH ECON JSON:" << e.what() << endl;
@@ -680,10 +706,13 @@ int main(int argc, char ** argv) {
     bioABM::setExperimentID(experimentID);
     outputFile.open(outputFilename);
     outputFile
-        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount" << endl;
+        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount,discreteprobability_doublerand,psylliddistribution_infected_doublerand,psylliddistribution_female_doublerand,modality1_infected_doublerand,modality1_female_doublerand,modality3_infected_doublerand,modality3_female_doublerand,modality5_infected_doublerand,modality5_female_doublerand,birtnewflush_doublerand" << endl;
 
     InitialiseCHMA(getCommodity());
+    if(!isNoactionstratergytype)
+    {
+        prevdata.ReadPreviousData(pdata,noactionread_file_no);
+    }
     runModel();
-
     return 0;
 }

@@ -1,4 +1,5 @@
 #include "../headers/bioABM.h"
+#include "../headers/previousyearprofitdata.hpp"
 using namespace std;
 namespace bioABM {
 
@@ -62,6 +63,20 @@ bool outputFlag = false;
 float initialInfectedPortion = 0.18;
 int initialNumPsyllids = 300;
 int hlbseverityon = false;
+
+
+
+double discreteprobability_doublerand = 0;
+double psylliddistribution_infected_doublerand = 0;
+double psylliddistribution_female_doublerand = 0;
+double modality1_infected_doublerand = 0;
+double modality1_female_doublerand = 0;
+double modality3_infected_doublerand = 0;
+double modality3_female_doublerand = 0;
+double modality5_infected_doublerand = 0;
+double modality5_female_doublerand = 0;
+double birtnewflush_doublerand = 0;
+
 
 // Lattice dimensions
 // paper size: 69(nR) x 157 (rL)
@@ -148,6 +163,8 @@ struct FlushPatch {
     array<int, 30> numShoots;
     array<int, 30> numInfectedShoots;
 
+    
+
     //Constructor
     FlushPatch() {      
         for (int i = 0; i < 17; i++) {
@@ -158,6 +175,8 @@ struct FlushPatch {
             numShoots[i] = 0;
             numInfectedShoots[i] = 0;
         }
+
+        
     }
 
     //Used on tree death
@@ -262,6 +281,8 @@ struct FlushPatch {
             numInfectedNymphs[age]++;
         }
     }
+
+    
 };
 
 //Used in determining the number of neighbors a cell has
@@ -329,6 +350,50 @@ double doubleRand(double min, double max) {
     return distribution(generator);
 }
 
+void fix_randomvalue_forday(bool isNoactionstratergytype,previousyearprofitdata pdata[])
+{
+    if(isNoactionstratergytype == true)
+    {
+        discreteprobability_doublerand = doubleRand(0, 1);
+        psylliddistribution_infected_doublerand = doubleRand(0, 1);
+        psylliddistribution_female_doublerand = doubleRand(0, 1);
+        modality1_infected_doublerand = doubleRand(0, 1);
+        modality1_female_doublerand = doubleRand(0, 1);
+        modality3_infected_doublerand = doubleRand(0, 1);
+        modality3_female_doublerand = doubleRand(0, 1);
+        modality5_infected_doublerand = doubleRand(0, 1);
+        modality5_female_doublerand = doubleRand(0, 1);
+        birtnewflush_doublerand = doubleRand(0, 1);
+
+    }
+    else
+    {
+        
+        int modeldayvalue = modelDay;
+        if(modelDay == -1)
+            modeldayvalue = 0;
+            
+        discreteprobability_doublerand = pdata[modeldayvalue].return_discreteprobability_doublerand();
+        psylliddistribution_infected_doublerand = pdata[modeldayvalue].return_psylliddistribution_infected_doublerand();
+        psylliddistribution_female_doublerand = pdata[modeldayvalue].return_psylliddistribution_female_doublerand();
+        modality1_infected_doublerand = pdata[modeldayvalue].return_modality1_infected_doublerand();
+        modality1_female_doublerand = pdata[modeldayvalue].return_modality1_female_doublerand();
+        modality3_infected_doublerand = pdata[modeldayvalue].return_modality3_infected_doublerand();
+        modality3_female_doublerand =pdata[modeldayvalue].return_modality3_female_doublerand();
+        modality5_infected_doublerand = pdata[modeldayvalue].return_modality5_infected_doublerand();
+        modality5_female_doublerand = pdata[modeldayvalue].return_modality5_female_doublerand();
+        birtnewflush_doublerand = pdata[modeldayvalue].return_birtnewflush_doublerand();
+
+    }
+}
+
+
+std::tuple<double, double, double, double, double,double,double,double,double,double> returndoublerandvalues() {
+    return std::make_tuple(discreteprobability_doublerand, psylliddistribution_infected_doublerand, psylliddistribution_female_doublerand, modality1_infected_doublerand, modality1_female_doublerand,
+    modality3_infected_doublerand,modality3_female_doublerand,modality5_infected_doublerand,modality5_female_doublerand,birtnewflush_doublerand);
+}
+
+
 /**************************************************************
  * Discrete Probability Match
  * Takes in a discrete vector of probabilities, and returns the
@@ -337,7 +402,7 @@ double doubleRand(double min, double max) {
  * ***********************************************************/
 int discreteProbabilityMatch(vector<double> probabilities) {
     double pull;
-    pull = doubleRand(0, 1);
+    pull = discreteprobability_doublerand;
     double cumSum = 0;
     int resultIdx = -1;
     for (int i = 0; i < probabilities.size(); i++) {
@@ -821,8 +886,8 @@ void uniformPsyllidDistribution(double percent, int numPsyllids, vector<coord> o
     }
     for (int i = 0; i < cells.size(); i++) {
         for (int j = 0; j < psyllidsPerTree; j++) {
-            bool infected = doubleRand(0, 1) < initialInfectedPortion;
-            bool female = doubleRand(0, 1) < 0.5;
+            bool infected = psylliddistribution_infected_doublerand < initialInfectedPortion;
+            bool female = psylliddistribution_female_doublerand < 0.5;
             lattice[cells[i].get<0>()][cells[i].get<1>()].placePsyllid(female, true, infected);
         }
     }
@@ -848,8 +913,8 @@ vector<coord> invasionModality1(int groveID) {
     //Place psyllids
     for (int i = 0; i < cells.size(); i++) {
         for (int j = 0; j < psyllidsPerTree; j++) {
-            bool infected = doubleRand(0,1) < initialInfectedPortion;
-            bool female = doubleRand(0,1) < 0.5;
+            bool infected = modality1_infected_doublerand < initialInfectedPortion;
+            bool female = modality1_female_doublerand < 0.5;
             lattice[cells[i].get<0>()][cells[i].get<1>()].placePsyllid(female, true, infected);
         }
     }
@@ -904,8 +969,8 @@ vector<coord> invasionModality3(int groveID) {
     //Distribute psyllids
     for (int i = 0; i < cells.size(); i++) {
         for (int j = 0; j < psyllidsPerTree; j++) {
-            bool infected = doubleRand(0, 1) < initialInfectedPortion;
-            bool female = doubleRand(0, 1) < 0.5;
+            bool infected = modality3_infected_doublerand < initialInfectedPortion;
+            bool female = modality3_female_doublerand < 0.5;
             lattice[cells[i].get<0>()][cells[i].get<1>()].placePsyllid(female, true, infected);
         }
     }
@@ -944,8 +1009,8 @@ vector<coord> invasionModality5(int groveID) {
     int psyllidsPerTree = 22;
     for (int i = 0; i < cells.size(); i++) {
         for (int j = 0; j < psyllidsPerTree; j++) {
-            bool infected = doubleRand(0, 1) < initialInfectedPortion;
-            bool female = doubleRand(0, 1) < 0.5;
+            bool infected = modality5_infected_doublerand < initialInfectedPortion;
+            bool female = modality5_female_doublerand  < 0.5;
             lattice[cells[i].get<0>()][cells[i].get<1>()].placePsyllid(female, true, infected);
         }
     }
@@ -1100,7 +1165,7 @@ void birthNewFlush() {
             //assert(birthInfectChance < 1);
             if (birthInfectChance > 0) {
                 for (int k = 0; k < flushEmerging; k++) {
-                    if (doubleRand(0, 1) <= birthInfectChance) {
+                    if (birtnewflush_doublerand <= birthInfectChance) {
                         
                         lattice[i][j].numInfectedShoots[0]++;
                     }

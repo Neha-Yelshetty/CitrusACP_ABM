@@ -29,7 +29,8 @@
 #include <numeric>
 #include <stdlib.h>
 #include <iostream>
-
+#include <tuple>
+#include "../headers/previousyearprofitdata.hpp"
 
 namespace bioABM {
     int getModelDay();
@@ -76,6 +77,11 @@ namespace bioABM {
     void bioTestSuite();
     
     void setExperimentID(int);
+
+    std::tuple<double, double, double, double, double,double,double,double,double,double> returndoublerandvalues();
+
+    void fix_randomvalue_forday(bool,previousyearprofitdata[]);
+
 }
 
 
