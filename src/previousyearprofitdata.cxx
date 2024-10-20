@@ -48,7 +48,7 @@ void previousyearprofitdata::ReadPreviousData(previousyearprofitdata pdata[],int
     //{
 
         ifstream inFile;
-        std::string filePath = "./output/TESTER/noAction_baseCase/" + std::to_string(time) + ".csv";
+        std::string filePath = "./output/TESTER/noAction_baseCase/" + std::to_string(time) + "_econ.csv";
         inFile.open(filePath);
 
         std::vector<std::string> tokens;
