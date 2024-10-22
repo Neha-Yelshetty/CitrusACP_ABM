@@ -106,6 +106,7 @@ int modelDay = -1;
 ofstream csvFile;
 string csvName;
 string globalinvasionModalities="";
+string noact_invarionModalities="";
 
 boost::random::lagged_fibonacci607 rng(std::random_device{}());
 boost::random::uniform_01<> gen;
@@ -351,6 +352,26 @@ double doubleRand(double min, double max) {
     return distribution(generator);
 }
 
+/*****************************************************
+ * STRING SPLIT
+ * Homemade string split function ripped from stack 
+ * overflow
+ * ***************************************************/
+vector<string> split(string s, string delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    string token;
+    vector<string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
+        token = s.substr (pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
+}
+
 void fix_randomvalue_forday(bool isNoactionstratergytype,previousyearprofitdata pdata[])
 {
     if(isNoactionstratergytype == true)
@@ -372,7 +393,10 @@ void fix_randomvalue_forday(bool isNoactionstratergytype,previousyearprofitdata 
         
         int modeldayvalue = modelDay;
         if(modelDay == -1)
+        {
             modeldayvalue = 0;
+        }
+        
             
         discreteprobability_doublerand = pdata[modeldayvalue].return_discreteprobability_doublerand();
         psylliddistribution_infected_doublerand = pdata[modeldayvalue].return_psylliddistribution_infected_doublerand();
@@ -427,25 +451,7 @@ int discreteProbabilityMatch(vector<double> probabilities) {
     }
     return resultIdx;
 }
-/*****************************************************
- * STRING SPLIT
- * Homemade string split function ripped from stack 
- * overflow
- * ***************************************************/
-vector<string> split(string s, string delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    string token;
-    vector<string> res;
 
-    while ((pos_end = s.find (delimiter, pos_start)) != string::npos) {
-        token = s.substr (pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        res.push_back (token);
-    }
-
-    res.push_back (s.substr (pos_start));
-    return res;
-}
 
 /*********************
  * Grid Size Helpers
@@ -1126,16 +1132,13 @@ void parseParameterFile(string fileName) {
             fallFlushEnd, invasionModalities, invasionGrove, outputFlag);
        
         vector<string> invasionDays_str = split(invasionDays, ",");
-        globalinvasionModalities = invasionModalities;
         for (int i = 0; i < invasionDays_str.size(); i++) {
             //cout<<invasionDays_str[i];
             invasionDays_q.push(stoi(invasionDays_str[i]));
         }
-        vector<string> invasionModalities_str = split(invasionModalities, ",");
-        for (int i = 0; i < invasionModalities_str.size(); i++) {
-           // cout<<invasionDays_str[i];
-            invasionModalities_q.push(stoi(invasionModalities_str[i]));
-        }
+
+        globalinvasionModalities = invasionModalities;
+
     }
     catch (const std::exception &e) {
         cout << "ERROR WITH BIO JSON - " << e.what() << endl;
@@ -1605,6 +1608,32 @@ void ageFlush() {
 
 #pragma endregion
 
+void setInvasionModality(bool isNoactionstratergytype,previousyearprofitdata pdata[])
+{
+    if(isNoactionstratergytype)
+    {
+        vector<string> invasionModalities_str = split(globalinvasionModalities, ",");
+        for (int i = 0; i < invasionModalities_str.size(); i++) {
+           // cout<<invasionDays_str[i];
+            invasionModalities_q.push(stoi(invasionModalities_str[i]));
+        }
+    }
+    else
+    {
+
+        noact_invarionModalities = pdata[0].return_no_invasionmodaility();
+        std::replace(noact_invarionModalities.begin(), noact_invarionModalities.end(), '-', ',');
+        globalinvasionModalities = noact_invarionModalities;
+        while (!invasionModalities_q.empty()) {
+            invasionModalities_q.pop();
+        }
+        vector<string> invasionModalities_str = split(noact_invarionModalities, ",");
+        for (int i = 0; i < invasionModalities_str.size(); i++) {
+            invasionModalities_q.push(stoi(invasionModalities_str[i]));
+        }
+    }
+}
+
 
 /******************************************
  * Advance biological model
@@ -1623,6 +1652,7 @@ void advanceBiologicalModel() {
     }
     //Invasion day activities
     if (!invasionDays_q.empty() && modelDay == invasionDays_q.front()) {
+        cout<< invasionModalities_q.front() << endl;
         placeInitialPsyllids(invasionModalities_q.front(), invasionGrove);
         invasionDays_q.pop();
         invasionModalities_q.pop();

@@ -27,12 +27,13 @@ public:
   double modality5_infected_doublerand;
   double modality5_female_doublerand;
   double birtnewflush_doublerand;
+  string no_invasionmodaility;
 
 
 
     previousyearprofitdata();
   
-    void setnoactiondata(int,double,double,double,double ,double ,double ,double ,double ,double , double ,double ,double ,double ,double );
+    void setnoactiondata(int,double,double,double,double ,double ,double ,double ,double ,double , double ,double ,double ,double ,double,string );
     void ReadPreviousData(previousyearprofitdata[],int);
 
     double return_discreteprobability_doublerand(){return this->discreteprobability_doublerand;}
@@ -45,6 +46,7 @@ public:
     double return_modality5_infected_doublerand(){return this->modality5_infected_doublerand;}
     double return_modality5_female_doublerand(){return this->modality5_female_doublerand;}
     double return_birtnewflush_doublerand(){return this->birtnewflush_doublerand;}
+    string return_no_invasionmodaility(){return this->no_invasionmodaility;}
 
 
 

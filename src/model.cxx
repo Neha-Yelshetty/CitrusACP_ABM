@@ -714,6 +714,7 @@ int main(int argc, char ** argv) {
     {
         prevdata.ReadPreviousData(pdata,noactionread_file_no);
     }
+    bioABM::setInvasionModality(isNoactionstratergytype,pdata);
     runModel();
     return 0;
 }

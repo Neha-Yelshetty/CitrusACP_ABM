@@ -24,7 +24,7 @@ previousyearprofitdata::previousyearprofitdata() {
 void previousyearprofitdata::setnoactiondata(int t,double costs,double returns,
     double profits,double hlb_severity,double discreteprobability_doublerand,double psylliddistribution_infected_doublerand,double psylliddistribution_female_doublerand,
     double modality1_infected_doublerand,double modality1_female_doublerand, double modality3_infected_doublerand,double modality3_female_doublerand,double modality5_infected_doublerand,
-    double modality5_female_doublerand,double birtnewflush_doublerand) {
+    double modality5_female_doublerand,double birtnewflush_doublerand,string no_invasionmodaility) {
         this-> t = t;
         this->costs = costs;
         this->returns = returns;
@@ -40,6 +40,7 @@ void previousyearprofitdata::setnoactiondata(int t,double costs,double returns,
         this->modality5_infected_doublerand = modality5_infected_doublerand;
         this->modality5_female_doublerand = modality5_female_doublerand;
         this->birtnewflush_doublerand = birtnewflush_doublerand;
+        this->no_invasionmodaility = no_invasionmodaility;
 }
 
 void previousyearprofitdata::ReadPreviousData(previousyearprofitdata pdata[],int time)
@@ -84,7 +85,8 @@ void previousyearprofitdata::ReadPreviousData(previousyearprofitdata pdata[],int
                     stod(tokens[16]),     // 12th argument (double)
                     stod(tokens[17]),     // 13th argument (double)
                     stod(tokens[18]),     // 14th argument (double)
-                    stod(tokens[19])      // 15th argument (double)
+                    stod(tokens[19]),      // 15th argument (double)
+                    std::string(tokens[20])
                     );
 
                 i++;

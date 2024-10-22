@@ -84,6 +84,8 @@ namespace bioABM {
 
     string getinvasionModalities(); 
 
+    void setInvasionModality(bool,previousyearprofitdata[]);
+
 }
 
 
