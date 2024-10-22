@@ -595,7 +595,8 @@ void writeCSVLine() {
         outputFile << modality3_female_doublerand << ","; 
         outputFile << modality5_infected_doublerand << ","; 
         outputFile << modality5_infected_doublerand << ","; 
-        outputFile << birtnewflush_doublerand << endl; 
+        outputFile << birtnewflush_doublerand <<",";
+        outputFile << bioABM::getinvasionModalities() << endl; 
        // outputFile << getDeadTrees(agents[i]) << endl;
     }
 }
@@ -706,7 +707,7 @@ int main(int argc, char ** argv) {
     bioABM::setExperimentID(experimentID);
     outputFile.open(outputFilename);
     outputFile
-        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount,discreteprobability_doublerand,psylliddistribution_infected_doublerand,psylliddistribution_female_doublerand,modality1_infected_doublerand,modality1_female_doublerand,modality3_infected_doublerand,modality3_female_doublerand,modality5_infected_doublerand,modality5_female_doublerand,birtnewflush_doublerand" << endl;
+        << fixed << "t,id,costs,returns,profit,hlb_severity,strategy_names, strategy_params, experiment_id,RougeTreeCount,discreteprobability_doublerand,psylliddistribution_infected_doublerand,psylliddistribution_female_doublerand,modality1_infected_doublerand,modality1_female_doublerand,modality3_infected_doublerand,modality3_female_doublerand,modality5_infected_doublerand,modality5_female_doublerand,birtnewflush_doublerand,invasionModalities" << endl;
 
     InitialiseCHMA(getCommodity());
     if(!isNoactionstratergytype)

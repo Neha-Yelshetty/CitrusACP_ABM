@@ -82,6 +82,8 @@ namespace bioABM {
 
     void fix_randomvalue_forday(bool,previousyearprofitdata[]);
 
+    string getinvasionModalities(); 
+
 }
 
 

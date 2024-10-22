@@ -105,6 +105,7 @@ bool modelStarted = false;
 int modelDay = -1;
 ofstream csvFile;
 string csvName;
+string globalinvasionModalities="";
 
 boost::random::lagged_fibonacci607 rng(std::random_device{}());
 boost::random::uniform_01<> gen;
@@ -1125,6 +1126,7 @@ void parseParameterFile(string fileName) {
             fallFlushEnd, invasionModalities, invasionGrove, outputFlag);
        
         vector<string> invasionDays_str = split(invasionDays, ",");
+        globalinvasionModalities = invasionModalities;
         for (int i = 0; i < invasionDays_str.size(); i++) {
             //cout<<invasionDays_str[i];
             invasionDays_q.push(stoi(invasionDays_str[i]));
@@ -1140,6 +1142,13 @@ void parseParameterFile(string fileName) {
         exit(-1);
     }
 }
+
+string getinvasionModalities()
+{
+    std::replace(globalinvasionModalities.begin(), globalinvasionModalities.end(), ',', '-');
+    return globalinvasionModalities;
+}
+
 #pragma endregion
 
 
