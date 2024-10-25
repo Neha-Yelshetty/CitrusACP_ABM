@@ -1658,7 +1658,7 @@ void advanceBiologicalModel() {
     }
     //Invasion day activities
     if (!invasionDays_q.empty() && modelDay == invasionDays_q.front()) {
-        cout<< invasionModalities_q.front() << endl;
+        //cout<< invasionModalities_q.front() << endl;
         placeInitialPsyllids(invasionModalities_q.front(), invasionGrove);
         invasionDays_q.pop();
         invasionModalities_q.pop();
