@@ -648,7 +648,7 @@ void parseParameterFile(string fileName) {
             ParameterSet::projectionLength, outputFilename, harvestDays, strategyParameters, strategyFlags, agencyFlags, experimentID,noactionread_file_no);
     }
     catch (exception e) {
-        cout << "ERROR WITH ECON JSON:" << e.what() << endl;
+        cout << "ERROR WITH ECON JSON:"<< "--"  << fileName << "--" << e.what() << endl;
         exit(-1);
     }
 }   

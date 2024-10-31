@@ -1147,7 +1147,7 @@ void parseParameterFile(string fileName) {
 
     }
     catch (const std::exception &e) {
-        cout << "ERROR WITH BIO JSON - " << e.what() << endl;
+        cout << "ERROR WITH BIO JSON - "<< "--"  << fileName << "--"  << e.what() << endl;
         exit(-1);
     }
 }
