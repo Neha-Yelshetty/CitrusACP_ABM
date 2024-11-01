@@ -1146,9 +1146,11 @@ void parseParameterFile(string fileName) {
         }
 
     }
+    catch (const cereal::Exception &e) {
+    cout << "Cereal parsing error in JSON: " << e.what() << endl;
+    }
     catch (const std::exception &e) {
-        cout << "ERROR WITH BIO JSON - "<< "--"  << fileName << "--"  << e.what() << endl;
-        exit(-1);
+        cout << "ERROR WITH ECON JSON - "<< "--" << fileName << "--" << e.what() << endl;
     }
 }
 

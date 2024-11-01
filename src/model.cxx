@@ -647,9 +647,11 @@ void parseParameterFile(string fileName) {
             ParameterSet::freshPrice, ParameterSet::juicePrice, ParameterSet::costs, ParameterSet::biologicalRun,
             ParameterSet::projectionLength, outputFilename, harvestDays, strategyParameters, strategyFlags, agencyFlags, experimentID,noactionread_file_no);
     }
-    catch (exception e) {
-        cout << "ERROR WITH ECON JSON:"<< "--"  << fileName << "--" << e.what() << endl;
-        exit(-1);
+    catch (const cereal::Exception &e) {
+        cout << "Cereal parsing error in JSON: " << e.what() << endl;
+    }
+    catch (const std::exception &e) {
+        cout << "ERROR WITH ECON JSON - "<< "--" << fileName << "--" << e.what() << endl;
     }
 }   
 
