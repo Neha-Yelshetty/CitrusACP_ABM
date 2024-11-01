@@ -648,7 +648,7 @@ void parseParameterFile(string fileName) {
             ParameterSet::projectionLength, outputFilename, harvestDays, strategyParameters, strategyFlags, agencyFlags, experimentID,noactionread_file_no);
     }
     catch (const cereal::Exception &e) {
-        cout << "Cereal parsing error in JSON: " << e.what() << endl;
+        cout << "Cereal parsing error in JSON: "<< "--" << fileName << "--" << e.what() << endl;
     }
     catch (const std::exception &e) {
         cout << "ERROR WITH ECON JSON - "<< "--" << fileName << "--" << e.what() << endl;
