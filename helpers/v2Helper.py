@@ -218,13 +218,14 @@ def appendMasterTriples(cnx, econ, biocons, folder, master, numSets=0, nameSuffi
 #PARAMTER FORMAT: removalCost, surveyCost, frequency, radius, efficacy, spraycost, denseCosts, 
 #                 yield multiplier, removalcost, surveycost, frequency, width, height
 #SPRAY TEST
-for x in range(0,10):
-    for e in [700,800,900]: #600,
+for e in [700,800,900]: #600,
+    for x in range(0,10):
         econ_copy = copy.deepcopy(econConfig)
         econ_copy["strategyFlags"] = "-1,1,0,0"
         econ_copy["strategyParameters"] = f"5,5,0,0,0.1,{e/1000},0.246,5,0"
         econ_copy["noactionread_file_no"] = x
-        appendMasterTriples(cnx_a, econ_copy, configList, f"sprayVariations",  masterConfigList, numSets=1)
+        no_ofiter = x_e
+        appendMasterTriples(cnx_a, econ_copy, configList, f"sprayVariations",  masterConfigList, numSets=1,noofiteration = no_ofiter)
 # # # #ROGUE TEST
 #for x in range(0,100):
 #	for radius in [0]: #20,40,60

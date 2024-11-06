@@ -232,7 +232,11 @@ struct FlushPatch {
         double hlbNum = (double)infected + (double)oldInfectedShoots;
         double hlbDenom = (double)uninfected + (double)oldUninfectedShoots + (double)hlbNum;
        
-      
+       /*if(getModelDay() > 500 && getModelDay() <= 520)
+       {
+        cout<< "uninfected : " << uninfected << " infected : " << infected << " oldInfectedShoots : " << oldInfectedShoots <<
+        "hlbNum : " << hlbNum << " oldUninfectedShoots : " << oldUninfectedShoots << " hlbDenom : " << hlbDenom << endl;
+       }*/
             if (hlbDenom == 0 || hlbseverityon) {
             
                 return 0;
@@ -1185,8 +1189,7 @@ void birthNewFlush() {
             //assert(birthInfectChance < 1);
             if (birthInfectChance > 0) {
                 for (int k = 0; k < flushEmerging; k++) {
-                    if (birtnewflush_doublerand <= birthInfectChance) {
-                        
+                    if (0 <= birthInfectChance) {
                         lattice[i][j].numInfectedShoots[0]++;
                     }
                     else {

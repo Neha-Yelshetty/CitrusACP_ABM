@@ -326,8 +326,10 @@ double getMeanHLB(Grove g) {
     for (int i = ibounds[0]; i < ibounds[1]; i++) {
         for (int j = jbounds[0]; j < jbounds[1]; j++) {
             if (bioABM::isTreeAlive(i,j)) {
+                
                 totalCells += 1.0;
                 totalHLB += bioABM::getSeverityAt(i, j);
+
             }
         }
     }
