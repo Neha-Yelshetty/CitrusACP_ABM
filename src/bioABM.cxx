@@ -1537,16 +1537,21 @@ void ageFlush() {
  * The wrapper function for all activities,
  * called by the econ layer
  * ****************************************/
-void advanceBiologicalModel() {
-    //First time function is called
-    if (!modelStarted) {
-        initializeModel();
-        if (outputFlag) {
-            initializeCSV();
-        }
-        modelDay = 0;
-        modelStarted = true;
+void initalize()
+{
+    initializeModel();
+    if (outputFlag) {
+        initializeCSV();
     }
+    modelDay = 0;
+}
+
+void advanceBiologicalModel(int farmid) {
+    //First time function is called
+    if(farmid ==0)
+        modelDay++;
+    if(modelDay <= 10)
+        cout<< "modelDay : " << modelDay << " farmid : "<< farmid << endl;
     //Invasion day activities
     if (!invasionDays_q.empty() && modelDay == invasionDays_q.front()) {
         placeInitialPsyllids(invasionModalities_q.front(), invasionGrove);
@@ -1574,7 +1579,7 @@ void advanceBiologicalModel() {
     if (outputFlag) {
         write_csv_batch();
     }
-    modelDay++;
+
 }
 
 

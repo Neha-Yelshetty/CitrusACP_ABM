@@ -3,9 +3,12 @@
 #include "commodity.hpp"
 #include "planningFunc.hpp"
 #include <vector>
+#include "bioABM.h"
+#include "biologicalmodel.hpp"
 using namespace std;
 
 class Behavior;
+class BiologicalModel;
 
 class Grove {
 private:
@@ -16,6 +19,7 @@ private:
     double lambda; // Trust in extension agent
     double alpha; // Expectation of neighbors coordination
     double sprayEfficacy;
+    BiologicalModel* bioModel;
 
 public:
     double fixedCosts; //Fixed cost per year associated with the grove
@@ -37,9 +41,9 @@ public:
     int rogueFreq = 0;
     int rogueRadius = 0;
     vector<Behavior*> behaviorPatterns;
-
+    int farmid =0;
     Grove();
-    Grove(Commodity crop, bool agency, int i_lb, int i_ub, int j_lb, int j_ub);
+    Grove(Commodity crop, bool agency, int i_lb, int i_ub, int j_lb, int j_ub,int farmid);
     //Grove();
     // Getters 
     bool hasAgency() { return this->agency; }
@@ -54,6 +58,13 @@ public:
     double getLambda() { return this->lambda; }
     double getAlpha() { return this->alpha; }
     double getSprayEfficacy() { return this->sprayEfficacy; }
+    void setBiologicalModel(BiologicalModel* model) {
+        bioModel = model;
+    }
+
+    BiologicalModel* getBiologicalModel() {
+        return bioModel;
+    }
 };
 
 #endif

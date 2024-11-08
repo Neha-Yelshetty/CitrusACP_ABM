@@ -11,13 +11,14 @@ Grove::Grove() {
 Grove::Grove() {
 }
 
-Grove::Grove(Commodity crop, bool agency, int i_lb, int i_ub, int j_lb, int j_ub) {
+Grove::Grove(Commodity crop, bool agency, int i_lb, int i_ub, int j_lb, int j_ub,int farmid) {
     this->crop = crop;
     setAgency(agency);
     ibounds[0] = i_lb;
     ibounds[1] = i_ub;
     jbounds[0] = j_lb;
     jbounds[1] = j_ub;
+    this->farmid = farmid;
 }
 
 int* Grove::getIBounds() {

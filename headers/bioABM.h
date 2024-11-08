@@ -65,7 +65,9 @@ namespace bioABM {
 
     void parseParameterFile(std::string);
 
-    void advanceBiologicalModel();
+    void advanceBiologicalModel(int farmid);
+
+    void initalize();
     
     //void advanceBiologicalModel_parallel();
 
